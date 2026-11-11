@@ -10,6 +10,7 @@ from datapilot import __version__
 from datapilot.knowledge import KnowledgeBase
 from datapilot.public_demo import build_olist_snapshot, predict_exported
 from datapilot.reviews import build_review_analysis
+from datapilot.research_validation import validate_research_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "frontend" / "olist-snapshot.json"
@@ -82,6 +83,7 @@ def main():
             parser.error("--zip is required to rebuild the public workspace")
         snapshot = assemble(args.zip)
         SNAPSHOT.write_text(json.dumps(snapshot, ensure_ascii=False, allow_nan=False, separators=(",", ":")) + "\n")
+    research = validate_research_directory(ROOT)
     if not args.check:
         target = ROOT / "dist"
         target.mkdir(exist_ok=True)
@@ -92,7 +94,8 @@ def main():
     print(json.dumps({"checked": True, "version": snapshot["version"], "delivered_orders": snapshot["profile"]["rows"],
                       "review_texts": snapshot["review_analysis"]["labeled_rows"],
                       "public_review_excerpts": snapshot["review_analysis"]["public_excerpt_count"],
-                      "model_inference": "browser", "generation": "deterministic evidence reports; no LLM"}))
+                      "model_inference": "browser", "generation": "deterministic evidence reports; no LLM",
+                      "app_version": __version__, "research": research}))
 
 
 if __name__ == "__main__":

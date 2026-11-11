@@ -25,7 +25,17 @@ Models compare predeclared baselines and estimators on a chronological holdout w
 
 Column-name gates cannot establish information availability for arbitrary datasets. Users must define their prediction time and input semantics. Forecast evaluation is rolling one-day prediction; the displayed 14-day recursive forecast is a separate artifact and its long-horizon interval coverage is not validated.
 
-The assistant's default is deterministic. If LangGraph is installed, it runs plan, retrieve, compose and validate nodes with bounded control flow. LangChain provider synthesis is opt-in, limited to documentary answers, and has not been verified against a paid provider in the bundled demo. Citation-index checks do not establish claim entailment. TF-IDF is a lexical baseline, not dense embeddings, hybrid retrieval or a neural reranker.
+The assistant's default is deterministic. If LangGraph is installed, it runs plan, retrieve, compose and validate nodes with bounded control flow. LangChain provider synthesis is opt-in, limited to documentary answers, and has not been verified against a paid provider in the bundled demo. Citation-index checks do not establish claim entailment. The original assistant keeps its lexical baseline; the separate retrieval study evaluates dense and hybrid retrieval.
+
+## Research studies
+
+`review-study.json` records a deeper rating-group experiment, independently of the original saved review model. Its protocol separates chronological fitting, validation-based candidate selection and later evaluation. It reports per-class errors, duplicate-text overlap and a subset whose normalized wording was absent from fitting and selection data. The protocol explicitly identifies the study as retrospective: the historical dataset and its earlier published holdout have already been inspected. A mechanically withheld partition alone does not make this an untouched external replication.
+
+`retrieval-study.json` records the corpus, relevance questions, model provenance, evaluation and exported dense representations. The semantic encoder is a pretrained multilingual model; DataPilot does not train that encoder. The initial relevance labels were authored with AI assistance and are a seed benchmark for human review. Question splits and the declared selection rule keep development choices separate from reported test metrics, but this small same-corpus benchmark does not establish generalization to other companies or independent answer correctness.
+
+The Research interface distinguishes saved experiments from live search. Semantic search is opt-in and downloads model assets before computing query embeddings in a background browser worker. Query text is processed on the visitor's device. Three English/Portuguese probes check tokenization and numerical compatibility. Because native and browser q8 outputs were not bit-identical, the live worker re-encodes the passage corpus and development questions in the browser, then selects browser thresholds using development questions only. Live and saved native-CPU scores can differ. Loading errors retain the existing lexical workflow. No embedding API, generation service, Python server or Cloudflare Function is required for the public research view.
+
+See [the review study](REVIEW_STUDY.md), [the retrieval study](RETRIEVAL_STUDY.md) and [the technical walkthrough](WALKTHROUGH.md) for reproducibility and the remaining evaluation limits.
 
 Security scope: no arbitrary Python execution, no generated SQL execution, bounded uploads, no secrets in frontend assets. Keep the Python API local until authentication, quotas, workspace isolation and background job controls are implemented. The Docker Compose port is loopback-only.
 

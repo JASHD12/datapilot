@@ -4,6 +4,8 @@ Primary demo: [DataPilot](https://jashdeep-datapilot.pages.dev). The Cloudflare 
 
 The public demo uses `frontend/olist-snapshot.json`: real historical Olist evaluation results, a small source-evidence corpus and exported numeric model coefficients. Predictions, evidence search and report composition execute in the visitor's browser. `frontend/olist-training-sample.json` additionally supports genuine browser training on 1,600 orders with a separate 400-order holdout. There is no paid model provider, server-side training endpoint, shared API key or uploaded customer data in this deployment.
 
+The Research view also serves `review-study.json`, `retrieval-study.json` and `semantic-search.js`. The saved studies need no model download. Explicitly loading live semantic search downloads approximately 136 MB of pinned model/tokenizer data plus the runtime from Hugging Face/jsDelivr; query encoding runs in a browser worker. Those weights are not stored on Pages. Internet access, third-party availability and sufficient device memory are required, but no inference API or Cloudflare Function is invoked.
+
 Direct Upload does not automatically deploy GitHub commits. Rebuild and upload `dist/` whenever public frontend files or artifacts change. The GitHub account's existing Actions billing lock can prevent GitHub CI/deploy jobs from starting; it does not prevent Cloudflare Pages Direct Upload.
 
 ## Build
@@ -16,6 +18,7 @@ python scripts/build_public.py --zip /path/to/brazilian-ecommerce.zip
 python scripts/build_browser_sample.py --zip /path/to/brazilian-ecommerce.zip
 python scripts/build_public.py --check
 python scripts/build_browser_sample.py --check
+python scripts/check_research.py
 ```
 
 The build retrains fixed experiments and regenerates aggregate artifacts. It does not read `.datapilot/` or publish a locally uploaded workspace. To package the checked-in public artifact without raw data:
@@ -23,6 +26,8 @@ The build retrains fixed experiments and regenerates aggregate artifacts. It doe
 ```bash
 python scripts/build_public.py --package-only
 ```
+
+The deeper review and retrieval experiments have separate reproduction commands in [REVIEW_STUDY.md](REVIEW_STUDY.md) and [RETRIEVAL_STUDY.md](RETRIEVAL_STUDY.md). Their corpus/source fingerprints must match the public workspace before packaging. Run `python scripts/check_research.py` to recompute report metrics from recorded confusion matrices and judged rankings without downloading raw data or model weights.
 
 After both artifacts are built, run `python scripts/build_public.py --package-only`, then deploy `dist/` as static files. No Python host is required. The comparison worker genuinely fits small models in the visitor's browser; full-data retraining and arbitrary CSV uploads remain local workflows. The sample and full-data metrics are intentionally separate.
 

@@ -3,14 +3,16 @@
 (() => {
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const main = $('#main');
-  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null, sampleResults: {}, sampleErrors: {}, samplePending: null};
+  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null, sampleResults: {}, sampleErrors: {}, samplePending: null, studies: {status:'idle',review:null,retrieval:null,errors:{}}, studyTab:'review', studyCohort:'test', studyQuestionSplit:'test', studyQuestionLanguage:'all', studyQuestionKind:'all', studyCaseId:'', studyRetrievalMethod:'lexical', semantic:{status:'idle',progress:'',error:null,query:'',mode:'dense',result:null,pending:false}};
   let sampleRequestId = 0;
   let sampleWorker = null;
   let samplePayload = null;
+  let semanticClient = null;
+  let semanticRequestId = 0;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
   const number = (value, digits = 0) => Number.isFinite(Number(value)) && value !== null ? Number(value).toLocaleString('en-US', {maximumFractionDigits: digits}) : '—';
   const percent = value => Number.isFinite(Number(value)) && value !== null ? `${(Number(value) * 100).toFixed(1)}%` : '—';
-  const labels = {project: 'Project overview', explore: 'Data exploration', models: 'Model evaluation', forecast: 'Time-series forecasting', segments: 'Segments & unusual profiles', reviews: 'Customer review analysis', knowledge: 'Document library', ask: 'Evidence reports'};
+  const labels = {project: 'Project overview', explore: 'Data exploration', models: 'Model evaluation', forecast: 'Time-series forecasting', segments: 'Segments & unusual profiles', reviews: 'Customer review analysis', knowledge: 'Document library', ask: 'Evidence reports', studies:'Research studies'};
   const paths = {
     explore: '<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="13" y="3" width="6" height="6" rx="1"/><rect x="3" y="13" width="6" height="6" rx="1"/><rect x="13" y="13" width="6" height="6" rx="1"/>',
     models: '<path d="m4 16 4-6 5 3 5-8"/><circle cx="4" cy="16" r="2"/><circle cx="8" cy="10" r="2"/><circle cx="13" cy="13" r="2"/><circle cx="18" cy="5" r="2"/>',
@@ -19,6 +21,7 @@
     reviews: '<path d="M3 4h16v12H9l-5 4v-4H3zM7 8h8M7 12h5"/>',
     knowledge: '<path d="M5 3h9l4 4v13H5zM14 3v5h4M8 12h7M8 16h5"/>',
     ask: '<path d="M3 4h16v12H9l-5 4v-4H3zM7 8h8M7 12h5"/>',
+    studies: '<path d="M4 3h14v17H4zM7 7h8M7 11h4M7 15l2 2 5-5"/>',
     project: '<path d="M4 18 18 4M7 4h11v11M4 5v13h13"/>',
     upload: '<path d="M11 15V3m-4 4 4-4 4 4M3 14v5h16v-5"/>',
     shield: '<path d="m11 2 8 3v6c0 5-8 9-8 9S3 16 3 11V5zM7 10l3 3 5-6"/>',
@@ -152,7 +155,7 @@
     const examples = state.workspace.examples || [];
     const suggestions = ['Summarize this Olist workspace', 'Compare the delivery model results', 'What do customer reviews say about delivery problems?', 'Show the historical order forecast'];
     return heading('07 / Ask DataPilot', 'An answer you can inspect.', 'Ask about the active dataset, recorded metrics, reviews or supplied documents. The browser builds deterministic reports from actual artifacts.', `${button('combined-report', 'Generate combined report', true)}${button('download-report', 'Download report')}`) +
-      `<div class="ask-layout"><section class="panel"><form class="ask-form" data-form="ask"><label class="code-label" for="question">YOUR QUESTION</label><textarea id="question" name="question" maxlength="2000" minlength="2" required placeholder="What do the recorded model results show?">${esc(state.question || '')}</textarea><div class="ask-form-footer"><p>${state.replay ? 'Live browser evidence reports. No LLM or API key; training remains local.' : 'No API key required. Model generation is optional and off by default.'}</p><button class="button primary">Inspect evidence <span aria-hidden="true">↗</span></button></div><div class="suggestions">${suggestions.slice(0,4).map((question,i)=>`<button type="button" class="suggestion" data-suggestion="${i}">${esc(question)}<span aria-hidden="true">↗</span></button>`).join('')}</div></form>${answerMarkup(state.answer)}</section><aside>${panel('The evidence path','What happens behind an answer.', [['01','Understand the question','Choose a supported read-only analysis route.'],['02','Read tools and sources','Use stored metrics, profile facts and retrieved passages.'],['03','Compose and validate','Keep source references visible and acknowledge missing evidence.']].map(([n,title,text])=>`<div class="method-step"><span class="method-number">${n}</span><div><h3>${title}</h3><p>${text}</p></div></div>`).join(''), 'BOUNDED WORKFLOW')}${note('A model association does not establish causality. Unsupported questions should produce a limitation, not an invented explanation.')}</aside></div>`;
+      `<div class="ask-layout"><section class="panel"><form class="ask-form" data-form="ask"><label class="code-label" for="question">YOUR QUESTION</label><textarea id="question" name="question" maxlength="2000" minlength="2" required placeholder="What do the recorded model results show?">${esc(state.question || '')}</textarea><div class="ask-form-footer"><p>${state.replay ? 'Live browser evidence reports. No LLM or API key; full-data training uses the local app.' : 'No API key required. Model generation is optional and off by default.'}</p><button class="button primary">Inspect evidence <span aria-hidden="true">↗</span></button></div><div class="suggestions">${suggestions.slice(0,4).map((question,i)=>`<button type="button" class="suggestion" data-suggestion="${i}">${esc(question)}<span aria-hidden="true">↗</span></button>`).join('')}</div></form>${answerMarkup(state.answer)}</section><aside>${panel('The evidence path','What happens behind an answer.', [['01','Understand the question','Choose a supported read-only analysis route.'],['02','Read tools and sources','Use stored metrics, profile facts and retrieved passages.'],['03','Compose and validate','Keep source references visible and acknowledge missing evidence.']].map(([n,title,text])=>`<div class="method-step"><span class="method-number">${n}</span><div><h3>${title}</h3><p>${text}</p></div></div>`).join(''), 'BOUNDED WORKFLOW')}${note('A model association does not establish causality. Unsupported questions should produce a limitation, not an invented explanation.')}</aside></div>`;
   }
   function repoButton(className = 'button') {
     const url = state.config.github_url;
@@ -298,6 +301,177 @@
   async function loadOlist() {
     try{const response=await fetch('./olist-snapshot.json');if(!response.ok)throw new Error('The Olist artifact is unavailable. Build scripts/build_olist_demo.py first.');clearSampleExperiments();state.workspace=await response.json();state.replay=true;state.answer=null;state.prediction=null;state.search=[];markConnection();render();toast('Historical Olist workspace opened. Browser tools are live; evaluations are saved.');}catch(error){toast(error.message,true);}
   }
+
+  function studyDoc(path, title) {
+    return `<a class="button" href="https://github.com/JASHD12/datapilot/blob/main/${path}" target="_blank" rel="noopener noreferrer">${esc(title)} <span aria-hidden="true">↗</span></a>`;
+  }
+  function studyMetric(value) { return value === null || value === undefined ? '—' : number(value,4); }
+  function studyLoading(kind) {
+    if(state.studies.status==='loading')return `<div class="study-loading" role="status"><span class="loader"></span><p>Opening the versioned experiment…</p></div>`;
+    return `<div class="study-unavailable" role="alert"><h2>This study could not be opened.</h2><p>${esc(state.studies.errors[kind]||'The experiment artifact is unavailable at this address.')}</p>${button('reload-studies','Retry loading studies',true)}</div>`;
+  }
+  function studyNotice(title, text) { return `<aside class="study-notice"><strong>${esc(title)}</strong><p>${esc(text)}</p></aside>`; }
+  async function loadStudies() {
+    if(state.studies.status==='loading')return;
+    state.studies.status='loading';state.studies.errors={};
+    const outcomes=await Promise.allSettled(['review-study.json','retrieval-study.json'].map(async filename=>{
+      const response=await fetch(`./${filename}?v=0.3.0`);
+      if(!response.ok)throw new Error('The experiment artifact could not be downloaded.');
+      const data=await response.json();
+      if(data.schema_version!==1)throw new Error('This experiment uses an unsupported artifact version.');
+      return data;
+    }));
+    outcomes.forEach((outcome,index)=>{const kind=index===0?'review':'retrieval';if(outcome.status==='fulfilled')state.studies[kind]=outcome.value;else state.studies.errors[kind]=outcome.reason?.message||'Loading failed.';});
+    state.studies.status='ready';
+    if(state.route==='studies')render();
+  }
+  function studyConfusion(matrix, labels) {
+    if(!Array.isArray(matrix)||!matrix.length)return empty('No confusion matrix','This evaluation has no confusion counts.');
+    const max=Math.max(1,...matrix.flat().map(Number).filter(Number.isFinite));
+    return `<div class="table-wrap"><table class="data-table confusion-table"><caption>Actual groups in rows; predicted groups in columns. Cells show review counts.</caption><thead><tr><th scope="col">Actual / predicted</th>${labels.map(label=>`<th scope="col">${esc(label)}</th>`).join('')}</tr></thead><tbody>${matrix.map((row,i)=>`<tr><th scope="row">${esc(labels[i])}</th>${row.map(value=>`<td style="--cell-shade:${Math.min(1,Math.max(0,Number(value)/max)).toFixed(3)}">${number(value)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  function reviewStudy() {
+    const data=state.studies.review;
+    if(!data)return studyLoading('review');
+    const cohort=state.studyCohort==='novel_text_test'?'novel_text_test':'test';
+    const evaluation=data.evaluations?.[cohort];
+    const metrics=evaluation?.metrics||{},baseline=evaluation?.baseline_metrics||{},rawInterval=evaluation?.bootstrap_macro_f1;
+    const interval=rawInterval?.available!==false&&Number.isFinite(rawInterval?.lower)&&Number.isFinite(rawInterval?.upper)?rawInterval:null;
+    const difference=evaluation?.bootstrap_macro_f1_difference;
+    const splits=['train','validation','test'].map(key=>({period:key,...data.split?.[key]}));
+    const splitTable=table(splits.map(split=>({period:split.period,rows:split.rows,from:String(split.start||'—').slice(0,10),to:String(split.end||'—').slice(0,10),negative:split.class_counts?.negative,neutral:split.class_counts?.neutral,positive:split.class_counts?.positive})),['period','rows','from','to','negative','neutral','positive']);
+    const rows=(data.candidates||[]).map(model=>({candidate:model.name,selected:model.id===data.selected_model?.id?'Yes':'',validation_macro_F1:studyMetric(model.validation?.macro_f1),validation_accuracy:studyMetric(model.validation?.accuracy)}));
+    const perClass=(evaluation?.per_class||[]).map(row=>({rating_group:row.label,precision:studyMetric(row.precision),recall:studyMetric(row.recall),F1:studyMetric(row.f1),reviews:row.support}));
+    return `<div class="study-intro"><div><div class="eyebrow">01 / TEXT CLASSIFICATION</div><h2>${esc(data.title||'Does the model generalize beyond familiar wording?')}</h2><p>${esc(data.question||'Audit rating-group classification on later reviews and on previously unseen normalized wording.')}</p></div><span class="tag">RECORDED EXPERIMENT</span></div>`+
+      studyNotice('Retrospective study','The Olist data and earlier holdout results were already inspected. Candidate selection uses the validation period only; this later test is a retrospective diagnostic, not pristine unseen research evidence.')+
+      panel('Choose the evaluation cohort','The same selected model is evaluated on both cohorts.',`<div class="study-controls"><div class="field"><label for="study-review-cohort">TEST COHORT</label><select id="study-review-cohort" data-study-control="studyCohort"><option value="test" ${cohort==='test'?'selected':''}>All later test reviews</option><option value="novel_text_test" ${cohort==='novel_text_test'?'selected':''}>Wording unseen in train and validation</option></select></div></div><p class="study-caption">${cohort==='test'?'Includes repeated wording, as found in the recorded dataset.':'Excludes test reviews whose normalized wording appeared in either earlier period. This is a subset diagnostic, not a new dataset.'}</p>`,'SAME MODEL / TWO COHORTS')+
+      `<div class="study-metrics">${metric('Macro F1',studyMetric(metrics.macro_f1),'Equal weight for all three rating groups','reviews')}${metric('Majority macro F1',studyMetric(baseline.macro_f1),'Constant-class reference on this cohort','models')}${metric('Evaluation reviews',number(evaluation?.rows),'Rows in the selected later cohort','database')}${metric('Accuracy',percent(metrics.accuracy),'Read together with minority-class scores','shield')}</div>`+
+      `<div class="grid-equal">${panel('Which groups does it miss?','Per-class results expose errors hidden by overall accuracy.',table(perClass,['rating_group','precision','recall','F1','reviews']),'CLASS-LEVEL ERRORS')}${panel('Where do mistakes go?','Inspect actual and predicted rating groups.',studyConfusion(evaluation?.confusion_matrix,data.labels||['negative','neutral','positive']),'CONFUSION MATRIX')}</div>`+
+      (interval?studyNotice('Uncertainty from resampling review wording',`${number((interval.confidence??0.95)*100)}% bootstrap interval for macro F1: ${studyMetric(interval.lower)}–${studyMetric(interval.upper)}. Resampling unit: ${interval.unit||'normalized text groups'}; ${number(interval.replicates)} replicates. ${difference?.available!==false&&Number.isFinite(difference?.lower)&&Number.isFinite(difference?.upper)?` Paired macro-F1 difference versus the majority baseline: ${studyMetric(difference.lower)}–${studyMetric(difference.upper)}.`:''} This interval does not establish performance on another marketplace.`):'')+
+      `<div class="grid-equal space-top">${panel('Model choice happens before the test','Predeclared feature representations compete on validation reviews.',table(rows,['candidate','selected','validation_macro_F1','validation_accuracy']),'VALIDATION ONLY')}${panel('Repeated wording audit','Counts describe overlap across the chronological boundary.',`<dl class="study-stat-list"><div><dt>Test reviews seen in earlier periods</dt><dd>${number(data.duplicates?.test_seen_before_rows)} <small>(${percent(data.duplicates?.test_seen_before_fraction)})</small></dd></div><div><dt>Validation reviews seen in training</dt><dd>${number(data.duplicates?.validation_seen_train_rows)}</dd></div><div><dt>Repeated rows within the test period</dt><dd>${number(data.duplicates?.within_test_repeated_rows)}</dd></div></dl><p class="study-caption">${esc(data.duplicates?.normalization||data.protocol?.normalization||'Read the experiment protocol for normalization rules.')}</p>`,'OVERLAP AUDIT')}</div>`+
+      panel('Chronological experiment design','Vocabulary is fitted on training reviews; validation selects a candidate; test scores are reported afterward.',splitTable,'THREE TIME PERIODS')+
+      panel('What the experiment tells us','Read the observed results alongside their scope.',`<ul class="study-findings">${(data.findings||[]).map(finding=>`<li>${esc(finding)}</li>`).join('')}</ul><p class="study-caption">Selected model: <strong>${esc(data.selected_model?.name||'Unavailable')}</strong>. ${esc(data.selected_model?.selection_reason||data.protocol?.selection_rule||'')}</p>`,'FAILURES INCLUDED')+
+      details('Model definitions and reproducibility',{source:data.source,protocol:data.protocol,candidates:data.candidates?.map(({validation,...model})=>model),normalization:data.duplicates?.normalization})+limits(data.limitations)+
+      `<div class="study-actions">${button('download-study-markdown','Download study report',true,'data-study="review"')}${button('download-study-json','Download results JSON',false,'data-study="review"')}${studyDoc('docs/REVIEW_STUDY.md','Reproduce the experiment')}</div>`;
+  }
+  function retrievalCases(data) {
+    return (data.cases||[]).filter(item=>item.split===state.studyQuestionSplit&&(state.studyQuestionLanguage==='all'||item.language===state.studyQuestionLanguage)&&(state.studyQuestionKind==='all'||item.answerable===(state.studyQuestionKind==='answerable')));
+  }
+  function passageFor(data, hit) {
+    return {...(data.passages||[]).find(item=>item.id===hit.id),...hit};
+  }
+  function retrievalHitMarkup(hits,data,caseItem=null) {
+    if(!hits?.length)return empty('No passages returned','This method did not return a supporting passage.');
+    return `<div class="search-results study-hits">${hits.map((raw,index)=>{const hit=passageFor(data,raw);const relevant=caseItem?.relevant_ids?.includes(hit.id);return `<article class="search-result"><div class="study-hit-heading"><h3>${index+1}. ${esc(hit.title||hit.id||'Source passage')}</h3>${caseItem?`<span class="tag ${relevant?'':'neutral'}">${relevant?'SEED RELEVANT':'NOT LABELED RELEVANT'}</span>`:''}</div><p>${esc(hit.text||'Passage text is unavailable in this artifact.')}</p><div class="search-result-meta">${esc(hit.source||'')} · ${esc(hit.section||hit.id||'')} · ranking score ${studyMetric(hit.score)}${hit.source_url&&/^https?:\/\//.test(hit.source_url)?` · <a href="${esc(hit.source_url)}" target="_blank" rel="noopener noreferrer">Source ↗</a>`:''}</div></article>`;}).join('')}</div>`;
+  }
+  function retrievalMetrics(method, split) {
+    const result=method?.[split]||{};
+    const answerable=result.answerable||{};
+    const abstention=result.abstention||{};
+    return {method:method.label||method.id,recall_at_3:studyMetric(answerable.recall_at_3),MRR_at_3:studyMetric(answerable.mrr_at_3),nDCG_at_3:studyMetric(answerable.ndcg_at_3),unanswerable_abstention:studyMetric(abstention.unanswerable_abstain_rate??abstention.unanswerable_abstention_rate??abstention.unanswerable_rejection_rate??abstention.specificity),answerable_coverage:studyMetric(abstention.answerable_accept_rate??abstention.answerable_coverage)};
+  }
+  function liveSemanticPanel(data) {
+    const live=state.semantic,loading=live.status==='loading',busy=loading||live.pending;
+    const output=live.result;
+    const status=loading?live.progress||'Downloading and opening the model…':live.pending?'Encoding the query and ranking passages…':live.status==='ready'?'Model ready. Query encoding runs in this browser.':'Model not downloaded for this session.';
+    return panel('Try multilingual semantic search','Run a new query against the same versioned passage corpus.',`<p class="study-caption">${esc(data.model?.download_notice||'Optional first use downloads an open model of roughly 120 MB from Hugging Face. Encoding runs on your device; there is no paid model API. A slower connection or limited browser memory may prevent loading.')}</p><div class="study-actions">${button('load-semantic',live.status==='ready'?'Reload local model':loading?'Loading model…':'Load semantic model',true,busy?'disabled':'')}${busy?button('cancel-semantic','Cancel'):''}</div><p class="semantic-status" id="semantic-status" role="status">${esc(status)}</p>${live.error?`<p class="sample-error" role="alert">${esc(live.error)} You can retry loading. The recorded comparison and lexical workbench remain available.</p>`:''}<form data-form="semantic-search" class="semantic-form"><div class="field"><label for="semantic-query">YOUR QUERY · ENGLISH OR PORTUGUESE</label><input id="semantic-query" name="query" maxlength="500" minlength="2" required value="${esc(live.query)}" placeholder="How do the models avoid using future information?"></div><div class="semantic-form-bottom"><div class="field"><label for="semantic-method">RETRIEVAL METHOD</label><select id="semantic-method" name="mode"><option value="hybrid" ${live.mode==='hybrid'?'selected':''}>Hybrid: lexical + dense (experimental)</option><option value="dense" ${live.mode==='dense'?'selected':''}>Dense embeddings</option></select></div><button class="button primary" ${live.status!=='ready'||busy?'disabled':''}>Search passages</button></div></form>${live.modelInfo?details('Browser encoder verification',{passages:live.modelInfo.corpusSize,minimum_reference_cosine:live.modelInfo.probeCosine,probe_checks:live.modelInfo.probeResults,vector_source:live.modelInfo.vectorSource,threshold_source:live.modelInfo.thresholdSource,development_thresholds:live.modelInfo.thresholds,interpretation:'Three public tokenization/embedding checks verify compatibility. Live corpus and query vectors share this browser runtime; saved native-CPU scores may differ. This is not a retrieval-quality guarantee.'}):''}${output?`<div class="semantic-result" id="semantic-result" tabindex="-1"><div class="eyebrow">LIVE BROWSER RETRIEVAL</div><h3>${output.abstained?'Insufficient support at the development threshold':'Ranked source passages'}</h3><p class="study-caption">${esc(output.method||live.mode)} · ${number(output.elapsed_ms/1000,2)} seconds. ${output.abstained?'The query was rejected at the development-selected threshold; no passage is presented as supporting evidence.':'Scores rank passages; they are not probabilities of truth.'} No answer generation is performed.</p>${retrievalHitMarkup(output.hits,data)}${details('Retrieval decision',{method:output.method,abstained:output.abstained,threshold:output.threshold,top_score:output.top_score,scope:output.scope})}</div>`:''}`,'OPT-IN / ON YOUR DEVICE');
+  }
+  function retrievalStudy() {
+    const data=state.studies.retrieval;
+    if(!data)return studyLoading('retrieval');
+    const cases=retrievalCases(data),selected=cases.find(item=>item.id===state.studyCaseId)||cases[0];
+    const method=(data.methods||[]).find(item=>item.id===state.studyRetrievalMethod)||data.methods?.[0];
+    const metrics=(data.methods||[]).map(item=>retrievalMetrics(item,state.studyQuestionSplit));
+    const languages=[...new Set((data.cases||[]).map(item=>item.language))];
+    const splitCount=(data.cases||[]).filter(item=>item.split===state.studyQuestionSplit).length;
+    const result=selected?.results?.[method?.id];
+    const hits=Array.isArray(result)?result:result?.hits||[];
+    const model=data.model||{};
+    return `<div class="study-intro"><div><div class="eyebrow">02 / MULTILINGUAL RETRIEVAL</div><h2>${esc(data.title||'Which retrieval method finds the supporting passage?')}</h2><p>${esc(data.scope||'Compare a lexical baseline, multilingual dense embeddings and hybrid retrieval on the same versioned corpus.')}</p></div><span class="tag">RECORDED EXPERIMENT</span></div>`+
+      studyNotice('Seed relevance judgments, open to review',data.benchmark?.annotation_status||'These questions and passage judgments were authored with AI assistance. They have not been independently validated by a human reviewer.')+
+      `<div class="study-actions">${button('reveal-semantic','Try browser semantic search',true)}<span class="study-caption">Optional model download; saved results below need no model.</span></div>`+
+      `<div class="study-metrics">${metric('Indexed passages',number(typeof data.corpus?.chunks==='number'?data.corpus.chunks:data.passages?.length),'Same corpus for every method','knowledge')}${metric('Development questions',number(data.benchmark?.dev_questions),'Threshold selection uses this split','models')}${metric('Test questions',number(data.benchmark?.test_questions),'Reported separately from development','shield')}${metric('Embedding dimensions',number(model.dimensions),'Multilingual query and passage vectors','studies')}</div>`+
+      panel('Compare on the same questions','Ranking quality is measured on answerable questions. Abstention is evaluated separately.',`<div class="study-controls"><div class="field"><label for="study-question-split">QUESTION SPLIT</label><select id="study-question-split" data-study-control="studyQuestionSplit"><option value="test" ${state.studyQuestionSplit==='test'?'selected':''}>Test questions</option><option value="dev" ${state.studyQuestionSplit==='dev'?'selected':''}>Development questions</option></select></div></div>${table(metrics,['method','recall_at_3','MRR_at_3','nDCG_at_3','unanswerable_abstention','answerable_coverage'])}<p class="study-caption">${number(splitCount)} questions in the selected split. Method thresholds are chosen on development questions only. A better ranking score does not establish that a generated answer is correct.</p><dl class="study-definitions"><div><dt>Recall@3</dt><dd>Fraction of labeled relevant passages found in the first three results.</dd></div><div><dt>MRR@3</dt><dd>Reciprocal rank of the first relevant passage, averaged across queries.</dd></div><div><dt>nDCG@3</dt><dd>Ranking quality that rewards placing relevant passages near the top.</dd></div><div><dt>Abstention / coverage</dt><dd>Rejection of unanswerable questions / acceptance of answerable questions.</dd></div></dl>`,'LEXICAL / DENSE / HYBRID')+
+      panel('Inspect a benchmark question','Switch methods to see the actual ranked passages and seed relevance labels.',`<div class="study-controls"><div class="field"><label for="study-question-language">LANGUAGE</label><select id="study-question-language" data-study-control="studyQuestionLanguage"><option value="all" ${state.studyQuestionLanguage==='all'?'selected':''}>All languages</option>${languages.map(language=>`<option value="${esc(language)}" ${state.studyQuestionLanguage===language?'selected':''}>${esc(language)}</option>`).join('')}</select></div><div class="field"><label for="study-question-kind">QUESTION TYPE</label><select id="study-question-kind" data-study-control="studyQuestionKind"><option value="all" ${state.studyQuestionKind==='all'?'selected':''}>All questions</option><option value="answerable" ${state.studyQuestionKind==='answerable'?'selected':''}>Answerable</option><option value="unanswerable" ${state.studyQuestionKind==='unanswerable'?'selected':''}>Unanswerable</option></select></div><div class="field"><label for="study-retrieval-method">METHOD</label><select id="study-retrieval-method" data-study-control="studyRetrievalMethod">${(data.methods||[]).map(item=>`<option value="${esc(item.id)}" ${method?.id===item.id?'selected':''}>${esc(item.label||item.id)}</option>`).join('')}</select></div></div>${cases.length?`<div class="field study-question-field"><label for="study-case">BENCHMARK QUESTION</label><select id="study-case" data-study-control="studyCaseId">${cases.map(item=>`<option value="${esc(item.id)}" ${selected?.id===item.id?'selected':''}>${esc(item.query)}</option>`).join('')}</select></div><div class="study-question"><span class="tag ${selected.answerable?'':'amber'}">${selected.answerable?'ANSWERABLE SEED QUESTION':'UNANSWERABLE SEED QUESTION'}</span><h3>${esc(selected.query)}</h3><p>${esc(selected.language)} · ${esc(selected.split)} · ${number(selected.relevant_ids?.length)} labeled relevant passages</p></div>${result?`<p class="study-caption"><strong>Recorded decision: ${result.abstained?'abstained':'accepted'}.</strong> ${selected.answerable?(result.abstained?'An answerable seed question was rejected.':'Read the ranked passages to check whether evidence was found.'):(result.abstained?'The method rejected this unanswerable seed question.':'The method accepted a question labeled unanswerable: a seed false positive.')} ${esc(selected.judgment_note||'')}</p>`:''}${retrievalHitMarkup(hits,data,selected)}${details('Recorded query decision',result)}`:empty('No questions match these filters','Choose another language or question type.')}`,'QUESTION EXPLORER')+
+      `<div id="semantic-search-panel" tabindex="-1">${liveSemanticPanel(data)}</div>`+details('Model and benchmark protocol',{model:{id:model.id,revision:model.revision,license:model.license,browser_id:model.browser_id,browser_revision:model.browser_revision,dtype:model.dtype,dimensions:model.dimensions},corpus:data.corpus,benchmark:data.benchmark,methods:data.methods?.map(item=>({id:item.id,label:item.label,parameters:item.parameters,threshold:item.threshold}))})+limits(data.limitations)+
+      `<div class="study-actions">${button('download-study-markdown','Download study report',true,'data-study="retrieval"')}${button('download-study-json','Download results JSON',false,'data-study="retrieval"')}${studyDoc('docs/RETRIEVAL_STUDY.md','Reproduce the experiment')}</div>`;
+  }
+  function studies() {
+    return heading('08 / Research studies','Put the result under scrutiny.','Inspect model choice, class-level errors, repeated-text robustness and multilingual retrieval quality. These studies expose the protocol as well as the score.',studyDoc('docs/WALKTHROUGH.md','Technical walkthrough'))+
+      `<div class="study-tabs" role="group" aria-label="Choose a research study"><button class="study-tab ${state.studyTab==='review'?'active':''}" data-action="study-tab" data-tab="review" aria-pressed="${state.studyTab==='review'}">01 <span>Review classification</span></button><button class="study-tab ${state.studyTab==='retrieval'?'active':''}" data-action="study-tab" data-tab="retrieval" aria-pressed="${state.studyTab==='retrieval'}">02 <span>Multilingual retrieval</span></button></div><div class="study-content" id="study-content">${state.studyTab==='retrieval'?retrievalStudy():reviewStudy()}</div>`;
+  }
+  function studyExport(kind) {
+    const data=state.studies[kind];
+    if(!data)throw new Error('Open the study before downloading its results.');
+    if(kind==='review')return data;
+    const {passage_embeddings,lexical_index,...result}=data;
+    const {probe,...model}=result.model||{};
+    return {...result,model,embedding_artifact:'retrieval-study.json (vectors omitted from this results download)'};
+  }
+  function downloadStudy(kind, format) {
+    try {
+      const data=studyExport(kind);
+      const body=format==='json'?JSON.stringify(data,null,2):kind==='review'?`# ${data.title}\n\n${data.question}\n\n## Protocol\n\nRetrospective chronological study. Candidate selection uses validation only. Test results were already inspected in earlier work; this is not pristine unseen research evidence.\n\nSelected model: ${data.selected_model?.name}\n\n## Results\n\n${Object.entries(data.evaluations||{}).map(([cohort,result])=>`### ${cohort}\n\nReviews: ${result.rows}\nMacro F1: ${result.metrics?.macro_f1}\nMajority macro F1: ${result.baseline_metrics?.macro_f1}\nAccuracy: ${result.metrics?.accuracy}`).join('\n\n')}\n\n## Findings\n\n${(data.findings||[]).map(item=>'- '+item).join('\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nSource: ${data.source?.source_url||datasetUrl}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/REVIEW_STUDY.md\n`:`# ${data.title}\n\n${data.scope}\n\n${data.benchmark?.annotation_status}\n\n## Retrieval comparison\n\n${(data.methods||[]).map(method=>`### ${method.label||method.id}\n\n${['dev','test'].map(split=>`${split}: ${JSON.stringify(retrievalMetrics(method,split))}`).join('\n\n')}`).join('\n\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/RETRIEVAL_STUDY.md\n`;
+      const url=URL.createObjectURL(new Blob([body],{type:format==='json'?'application/json':'text/markdown;charset=utf-8'}));
+      const link=document.createElement('a');link.href=url;link.download=`datapilot-${kind}-study.${format==='json'?'json':'md'}`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    } catch(error) {toast(error.message,true);}
+  }
+  function semanticProgress(value) {
+    if(typeof value==='string')return value;
+    const status=value?.status||'Loading model';
+    return `${status}${value?.file?' · '+String(value.file).split('/').pop():''}${Number.isFinite(value?.progress)?' · '+Math.round(value.progress)+'%':''}`;
+  }
+  function updateSemanticProgress(value, requestId) {
+    if(requestId!==semanticRequestId)return;
+    state.semantic.progress=semanticProgress(value);
+    const status=$('#semantic-status');if(status)status.textContent=state.semantic.progress;
+  }
+  async function loadSemantic() {
+    if(state.semantic.status==='loading'||state.semantic.pending)return;
+    const id=++semanticRequestId;
+    semanticClient?.cancel();semanticClient=null;
+    state.semantic={...state.semantic,status:'loading',progress:'Opening the optional browser encoder…',error:null,result:null,modelInfo:null};render();
+    let timer;
+    try {
+      const module=await import('./semantic-search.js?v=0.3.0');
+      if(id!==semanticRequestId)return;
+      semanticClient=new module.SemanticSearch(new URL('./retrieval-study.json?v=0.3.0',document.baseURI).href);
+      const info=await Promise.race([semanticClient.load(progress=>updateSemanticProgress(progress,id)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Model loading exceeded the three-minute browser limit.')),180000);})]);
+      if(id!==semanticRequestId)return;
+      state.semantic.status='ready';state.semantic.progress='Model ready. Query encoding runs in this browser.';state.semantic.modelInfo=info;
+      toast('Semantic model ready. You can now search the passage corpus.');
+    } catch(error) {
+      if(id===semanticRequestId){semanticClient?.cancel();state.semantic.status='error';state.semantic.error=error.message||'The browser model could not be opened.';}
+    } finally {
+      clearTimeout(timer);
+      if(id===semanticRequestId&&state.route==='studies'&&state.studyTab==='retrieval')render();
+    }
+  }
+  function cancelSemantic() {
+    semanticRequestId+=1;semanticClient?.cancel();semanticClient=null;
+    state.semantic={...state.semantic,status:'idle',pending:false,progress:'Model operation canceled.',error:null,modelInfo:null};
+    render();toast('Semantic operation canceled. Recorded study results are still available.');
+  }
+  async function runSemanticSearch(data) {
+    if(state.semantic.status!=='ready'||!semanticClient)return toast('Load the semantic model before searching.');
+    if(state.semantic.pending)return;
+    const query=String(data.query||'').trim(),mode=data.mode==='dense'?'dense':'hybrid';
+    if(query.length<2||query.length>500)return toast('Enter a query between 2 and 500 characters.',true);
+    const id=++semanticRequestId;
+    state.semantic={...state.semantic,query,mode,pending:true,error:null,result:null};render();
+    let timer;
+    try {
+      const result=await Promise.race([semanticClient.search(query,{mode,limit:4,onProgress:progress=>updateSemanticProgress(progress,id)}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('The query exceeded the one-minute browser limit.')),60000);})]);
+      if(id!==semanticRequestId)return;
+      state.semantic.result=result;
+    } catch(error) {
+      if(id===semanticRequestId){semanticClient?.cancel();semanticClient=null;state.semantic.status='error';state.semantic.error=error.message||'The query could not be processed.';}
+    } finally {
+      clearTimeout(timer);
+      if(id===semanticRequestId){state.semantic.pending=false;if(state.route==='studies'&&state.studyTab==='retrieval'){render();if(state.semantic.result)revealResult('semantic-result');}}
+    }
+  }
+
   function project() {
     const rows = profile().charts?.daily_orders || [];
     const capabilities = [
@@ -305,18 +479,20 @@
       ['models','Model comparisons','Classification and regression with fixed baselines, temporal evaluation and visible feature exclusions.',['scikit-learn','FastAPI'],'IMPLEMENTED'],
       ['forecast','Time-series analysis','Lag-based forecasting, a seasonal baseline and an inspectable rolling backtest.',['Ridge','Temporal holdout'],'IMPLEMENTED'],
       ['segments','Operational profiles','K-means segmentation and Isolation Forest scores, labeled as exploratory findings.',['K-means','Isolation Forest'],'IMPLEMENTED'],
-      ['knowledge','Source-aware retrieval','Local lexical retrieval with document passages and an optional bounded LangGraph workflow.',['TF-IDF','LangGraph optional'],'IMPLEMENTED'],
+      ['knowledge','Source-aware retrieval','Compare lexical, multilingual dense and hybrid passage retrieval with a versioned evaluation protocol.',['TF-IDF','Multilingual embeddings','Hybrid RRF'],'IMPLEMENTED'],
       ['reviews','Customer review analysis','Portuguese review rating-group classification, recurring complaint keywords and source-linked excerpts.',['TF-IDF','Logistic regression'],state.workspace.review_analysis ? 'IMPLEMENTED' : 'ROADMAP'],
-      ['ask','Evaluated AI extensions','Dense retrieval, reranking, transformer fine-tuning and broader evaluation datasets.',['Embeddings','PyTorch'],'ROADMAP'],
+      ['studies','Research studies','Inspect validation-only model choice, repeated-text robustness and seed retrieval judgments, with downloadable findings.',['Error analysis','Reproducible experiments'],'IMPLEMENTED'],
+      ['ask','Further AI experiments','Independent retrieval judgments, neural reranking, transformer fine-tuning and broader evaluation datasets.',['Human review','Neural models'],'ROADMAP'],
     ];
     return `<div class="project-page">${heading('A project by Jashdeep Singh','DataPilot','A reusable AI, machine learning and data science workbench. One project, built around inspectable results.')}
     <section class="project-hero"><div class="hero-copy"><div class="eyebrow">DATA / MODELS / EVIDENCE</div><h1>From raw records<br>to <em>inspectable insights.</em></h1><p>Explore data, compare predictive models and investigate questions through numerical tools and cited documents. See the result and the evidence behind it.</p><div class="hero-actions"><a href="#explore" class="button primary large">Open the workbench <span aria-hidden="true">↗</span></a>${repoButton('button large')}</div><p class="hero-note">${state.replay ? source().kind === 'public' ? 'PUBLIC OLIST WORKSPACE · HISTORICAL DATA / LIVE BROWSER TOOLS' : 'SYNTHETIC REPLAY · LOCALLY COMPUTED RESULTS' : 'LOCAL APPLICATION · UPLOAD AND TRAIN'}</p></div><div class="hero-instrument"><div class="instrument-top"><span><span class="status-dot"></span>ACTIVE DATASET</span><span>DATAPILOT / 01</span></div><div class="instrument-number"><strong>${number(profile().rows)}</strong><span>RECORDED ROWS</span></div>${lineChart(rows.slice(-45),undefined,170)}<div class="instrument-foot"><span>${esc(source().label)}</span><span>PROVENANCE VISIBLE</span></div></div></section>
-    <div class="project-meta"><div><span>PROJECT TYPE</span><strong>AI / ML / Data Science</strong></div><div><span>DELIVERY</span><strong>Python API + browser workbench</strong></div><div><span>STATUS</span><strong>Initial working implementation</strong></div></div>
+    <div class="project-meta"><div><span>PROJECT TYPE</span><strong>AI / ML / Data Science</strong></div><div><span>DELIVERY</span><strong>Python API + browser workbench</strong></div><div><span>STATUS</span><strong>Versioned experiments + live tools</strong></div></div>
     <div class="project-intro"><h2>Broad capabilities.<br>A concrete workflow.</h2><p>The same workspace connects data quality, predictive modeling, forecasting and documentary evidence. A real Olist workspace connects delivery models, order forecasting, operational profiles and customer reviews. Configurable uploads let the local application work with other compatible datasets. Claims are tied to their data source and evaluation setup.</p></div>
     <div class="capability-grid">${capabilities.map(([glyph,title,text,tags,status])=>`<article class="capability"><div class="capability-top"><span class="capability-icon">${icon(glyph)}</span><span class="tag ${status==='ROADMAP'?'amber':''}">${status}</span></div><h3>${title}</h3><p>${text}</p><div class="stack-list">${tags.map(tag=>`<span class="stack-chip">${tag}</span>`).join('')}</div></article>`).join('')}</div>
     <section class="panel architecture"><div class="section-heading" style="margin-top:0"><h2>The system, at a glance</h2><span class="panel-tag">REPRODUCIBLE BY DESIGN</span></div><div class="architecture-flow">${[['01','Data & documents','Validated CSVs and a versioned source library'],['02','Analysis & models','Profiles, fixed comparisons and temporal backtests'],['03','Tools & evidence','Stored metrics, source retrieval and bounded routing'],['04','The workbench','A visible result, assumptions and an audit trail']].map(([n,title,text],i)=>`${i?'<span class="architecture-arrow" aria-hidden="true">→</span>':''}<div class="architecture-node"><span>${n}</span><strong>${title}</strong><small>${text}</small></div>`).join('')}</div><div class="architecture-footer">Full-data evaluation is saved. Small sample comparisons train in your browser, alongside predictions, search and reports. Full-data training and uploads use the local application. No provider key is embedded.</div></section>
-    <div class="grid-equal space-top">${panel('What makes the work inspectable','Implementation choices that matter in a review.',`<ul class="detail-list"><li><span>Metrics</span><strong>Computed, never decorative</strong></li><li><span>Validation</span><strong>Time boundaries and baseline comparisons</strong></li><li><span>Evidence</span><strong>Tool outputs and cited passages</strong></li><li><span>Limits</span><strong>Visible alongside the results</strong></li></ul>`,'ENGINEERING CHOICES')}${panel('Next research questions','Planned work, not completed claims.',`<ol class="roadmap"><li><span>01</span><div><h3>Retrieval quality</h3><p>Compare lexical, dense and hybrid retrieval on a checked question set.</p></div></li><li><span>02</span><div><h3>Model generalization</h3><p>Evaluate additional real datasets and predictive tasks with suitable labels.</p></div></li><li><span>03</span><div><h3>Multimodal evidence</h3><p>Add document extraction and evaluate field-level correctness.</p></div></li></ol>`,'ROADMAP')}</div>
-    ${attribution()}${note(source().description || 'Results describe only the active dataset. The project is an initial implementation, not a claim of production business impact.')}
+    <div class="grid-equal space-top">${panel('What makes the work inspectable','Implementation choices that matter in a review.',`<ul class="detail-list"><li><span>Metrics</span><strong>Computed, never decorative</strong></li><li><span>Validation</span><strong>Time boundaries and baseline comparisons</strong></li><li><span>Evidence</span><strong>Tool outputs and cited passages</strong></li><li><span>Limits</span><strong>Visible alongside the results</strong></li></ul>`,'ENGINEERING CHOICES')}${panel('Next research questions','Planned work, not completed claims.',`<ol class="roadmap"><li><span>01</span><div><h3>Independent relevance review</h3><p>Have a reviewer check the seed questions and passage judgments, then evaluate a new question set.</p></div></li><li><span>02</span><div><h3>Model generalization</h3><p>Evaluate additional real datasets and predictive tasks with suitable labels.</p></div></li><li><span>03</span><div><h3>Multimodal evidence</h3><p>Add document extraction and evaluate field-level correctness.</p></div></li></ol>`,'ROADMAP')}</div>
+    <section class="study-project-callout"><div><div class="eyebrow">GO DEEPER / TWO REPRODUCIBLE STUDIES</div><h2>Challenge the score.</h2><p>Does a review classifier work on unfamiliar wording? Does semantic retrieval find the right evidence? Inspect the validation, failure cases and measured results.</p></div><div class="study-actions"><a class="button primary" href="#studies">Open research studies <span aria-hidden="true">↗</span></a>${studyDoc('docs/WALKTHROUGH.md','Technical walkthrough')}</div></section>
+    ${attribution()}${note(source().description || 'Results describe only the active dataset. The versioned studies document historical experiments and their limitations.')}
     <section class="project-final"><div><h2>Inspect the project yourself.</h2><p>Follow a dataset from its source through a model comparison to an evidence report.</p></div><a class="button large" href="#models">Explore the results <span aria-hidden="true">↗</span></a></section></div>`;
   }
 
@@ -326,8 +502,9 @@
     state.route = Object.hasOwn(labels,candidate) ? candidate : 'project';
     $('#breadcrumb-title').textContent = labels[state.route];
     document.querySelectorAll('[data-route]').forEach(link => { link.classList.toggle('active',link.dataset.route===state.route); link.setAttribute('aria-current',link.dataset.route===state.route?'page':'false'); });
-    main.innerHTML = ({project,explore,models,forecast,segments,reviews,knowledge,ask})[state.route]();
+    main.innerHTML = ({project,explore,models,forecast,segments,reviews,knowledge,ask,studies})[state.route]();
     document.querySelectorAll('[data-suggestion]').forEach(element => element.addEventListener('click', () => { const suggestions=['Summarize this Olist workspace','Compare the delivery model results','What do customer reviews say about delivery problems?','Show the historical order forecast']; const question=suggestions[Number(element.dataset.suggestion)]; $('#question').value=question; state.question=question; $('#question').focus(); }));
+    if(state.route==='studies'&&state.studies.status==='idle')loadStudies();
   }
   async function api(path, options = {}) {
     const response = await fetch(path, options);
@@ -371,7 +548,7 @@
       const dataset=samplePayload.tasks?.[task];
       if(!dataset||dataset.target!==target)throw new Error('The public sample supports only its fixed delivery targets.');
       if(samplePayload.source?.archive_sha256!==source().archive_sha256)throw new Error('The sample does not match this workspace source.');
-      worker=new Worker(new URL('./browser-training.js?v=0.2.1',document.baseURI));
+      worker=new Worker(new URL('./browser-training.js?v=0.3.0',document.baseURI));
       sampleWorker=worker;
       const result=await new Promise((resolve,reject)=>{
         timer=setTimeout(()=>reject(new Error('Training exceeded the 30-second demo limit.')),30000);
@@ -418,6 +595,12 @@
   document.addEventListener('click', event => {
     const target=event.target.closest('[data-action]'); if(!target)return;
     const action=target.dataset.action;
+    if(action==='study-tab') { state.studyTab=target.dataset.tab==='retrieval'?'retrieval':'review';render();document.querySelector(`[data-action="study-tab"][data-tab="${state.studyTab}"]`)?.focus();return; }
+    if(action==='reload-studies') { state.studies.status='idle';render();return; }
+    if(action==='download-study-markdown'||action==='download-study-json') { downloadStudy(target.dataset.study==='retrieval'?'retrieval':'review',action.endsWith('json')?'json':'markdown');return; }
+    if(action==='load-semantic') { loadSemantic();return; }
+    if(action==='reveal-semantic') { revealResult('semantic-search-panel');return; }
+    if(action==='cancel-semantic') { cancelSemantic();return; }
     if(action==='upload-dataset'||action==='upload-knowledge') { if(state.replay)return toast('Uploads run in the local Python application. See the project README for setup.'); $(action==='upload-dataset'?'#dataset-file':'#knowledge-file').click(); }
     if(action==='load-olist') { loadOlist(); return; }
     if(action==='view-comparison') { revealResult('recorded-'+target.dataset.task); return; }
@@ -432,6 +615,7 @@
   document.addEventListener('submit',async event=>{
     const form=event.target.closest('[data-form]'); if(!form)return; event.preventDefault();
     const kind=form.dataset.form, data=Object.fromEntries(new FormData(form));
+    if(kind==='semantic-search')return runSemanticSearch(data);
     if(kind==='predict-order') { predictOrder(data); render(); return; }
     if(kind==='review-search') { state.reviewSearch=data.query; render(); return; }
     if(kind.startsWith('train-')) {
@@ -451,6 +635,14 @@
       try { if(state.replay) { state.answer=browserAnswer(data.question); } else state.answer=await post('/api/assistant',{question:data.question}); render(); }
       catch(error){toast(error.message,true);if(submit)submit.disabled=false;}
     }
+  });
+  document.addEventListener('change',event=>{
+    const target=event.target.closest('[data-study-control]');if(!target)return;
+    const key=target.dataset.studyControl;
+    if(!['studyCohort','studyQuestionSplit','studyQuestionLanguage','studyQuestionKind','studyCaseId','studyRetrievalMethod'].includes(key))return;
+    state[key]=target.value;
+    if(['studyQuestionSplit','studyQuestionLanguage','studyQuestionKind'].includes(key))state.studyCaseId='';
+    const id=target.id;render();document.getElementById(id)?.focus({preventScroll:true});
   });
   for(const [id,path,label] of [['dataset-file','/api/datasets/upload','Dataset uploaded.'],['knowledge-file','/api/knowledge/upload','Document added.']]) $( `#${id}`).addEventListener('change',event=>{
     const file=event.target.files[0]; if(!file)return; const body=new FormData();body.append('file',file);

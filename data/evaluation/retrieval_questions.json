@@ -1,0 +1,536 @@
+{
+  "schema_version": 1,
+  "annotation_status": "AI-assisted, agent-authored seed questions and binary relevance judgments; not independently human-validated. Review and amend before claiming external benchmark quality.",
+  "purpose": "Compare fixed lexical, pretrained multilingual dense and RRF retrieval over the same public corpus; development-only abstention threshold selection.",
+  "creation_protocol": "Twenty authored category IDs are disjoint across development/test (8 dev, 12 test). Bilingual counterparts stay together. Category-ID disjointness does not prove semantic independence. Fixed method configurations and threshold selection rule were not tuned to test scores.",
+  "questions": [
+    {
+      "id": "dev-classification_scoring-en",
+      "split": "dev",
+      "intent": "classification_scoring",
+      "language": "en",
+      "query": "Why can a late-delivery classifier have high accuracy and still be unhelpful?",
+      "answerable": true,
+      "relevant_ids": [
+        "e939eea63441ffe2"
+      ],
+      "judgment_note": "Method note explains rare late orders and precision/recall; no business claim."
+    },
+    {
+      "id": "dev-classification_scoring-pt",
+      "split": "dev",
+      "intent": "classification_scoring",
+      "language": "pt",
+      "query": "Por que a alta acurácia pode esconder um classificador ruim de atrasos?",
+      "answerable": true,
+      "relevant_ids": [
+        "e939eea63441ffe2"
+      ],
+      "judgment_note": "Method note explains rare late orders and precision/recall; no business claim."
+    },
+    {
+      "id": "dev-rating_proxy-en",
+      "split": "dev",
+      "intent": "rating_proxy",
+      "language": "en",
+      "query": "Do negative and positive labels mean that humans independently annotated sentiment?",
+      "answerable": true,
+      "relevant_ids": [
+        "214a1e34c597d71d"
+      ],
+      "judgment_note": "Workspace note explicitly defines recorded rating groups as proxies."
+    },
+    {
+      "id": "dev-rating_proxy-pt",
+      "split": "dev",
+      "intent": "rating_proxy",
+      "language": "pt",
+      "query": "Os rótulos negativo e positivo são sentimentos anotados independentemente por pessoas?",
+      "answerable": true,
+      "relevant_ids": [
+        "214a1e34c597d71d"
+      ],
+      "judgment_note": "Workspace note explicitly defines recorded rating groups as proxies."
+    },
+    {
+      "id": "dev-wrong_item-en",
+      "split": "dev",
+      "intent": "wrong_item",
+      "language": "en",
+      "query": "Find review evidence saying the delivered item differed from what the buyer ordered.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-90a189b809dcd9a3",
+        "review-32feb4e7529595c5",
+        "review-38430e3e4f396ec8",
+        "review-04a437f69cab9d19",
+        "review-13d4f58a5c9d0741",
+        "review-43b0ab4a1b339d60",
+        "review-1e114501246e32f5"
+      ],
+      "judgment_note": "These seven source phrases explicitly describe incorrect/different products; exchange itself is not proof of a real policy."
+    },
+    {
+      "id": "dev-wrong_item-pt",
+      "split": "dev",
+      "intent": "wrong_item",
+      "language": "pt",
+      "query": "Procuro comentários sobre receber um item diferente do que foi pedido.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-90a189b809dcd9a3",
+        "review-32feb4e7529595c5",
+        "review-38430e3e4f396ec8",
+        "review-04a437f69cab9d19",
+        "review-13d4f58a5c9d0741",
+        "review-43b0ab4a1b339d60",
+        "review-1e114501246e32f5"
+      ],
+      "judgment_note": "These seven source phrases explicitly describe incorrect/different products; exchange itself is not proof of a real policy."
+    },
+    {
+      "id": "dev-product_defect-en",
+      "split": "dev",
+      "intent": "product_defect",
+      "language": "en",
+      "query": "Which comments say that the item is defective or does not work?",
+      "answerable": true,
+      "relevant_ids": [
+        "review-e6317aa6271018d6",
+        "review-df9ad49bc4a51583",
+        "review-d4dd1bb1c361ca4e"
+      ],
+      "judgment_note": "Defect and nonfunction statements only; low quality alone is not judged a defect."
+    },
+    {
+      "id": "dev-product_defect-pt",
+      "split": "dev",
+      "intent": "product_defect",
+      "language": "pt",
+      "query": "Quais comentários dizem que o produto veio com defeito ou não funciona?",
+      "answerable": true,
+      "relevant_ids": [
+        "review-e6317aa6271018d6",
+        "review-df9ad49bc4a51583",
+        "review-d4dd1bb1c361ca4e"
+      ],
+      "judgment_note": "Defect and nonfunction statements only; low quality alone is not judged a defect."
+    },
+    {
+      "id": "dev-fast_delivery-en",
+      "split": "dev",
+      "intent": "fast_delivery",
+      "language": "en",
+      "query": "Show Portuguese comments saying the parcel arrived quickly or before the promised date.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-b70ee445314c6e7d",
+        "review-9300f82a5af812a0",
+        "review-3c82e5e0360105c8",
+        "review-2d13ffb110c0a168",
+        "review-4b189227e90f95b1",
+        "review-1074b234eb70fe63",
+        "review-d4f7203274f0e1b7"
+      ],
+      "judgment_note": "Only explicit quick/early delivery phrases; on-time alone does not mean fast."
+    },
+    {
+      "id": "dev-fast_delivery-pt",
+      "split": "dev",
+      "intent": "fast_delivery",
+      "language": "pt",
+      "query": "Mostre avaliações que dizem que a encomenda chegou rápido ou antes do prazo.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-b70ee445314c6e7d",
+        "review-9300f82a5af812a0",
+        "review-3c82e5e0360105c8",
+        "review-2d13ffb110c0a168",
+        "review-4b189227e90f95b1",
+        "review-1074b234eb70fe63",
+        "review-d4f7203274f0e1b7"
+      ],
+      "judgment_note": "Only explicit quick/early delivery phrases; on-time alone does not mean fast."
+    },
+    {
+      "id": "dev-refund_policy-en",
+      "split": "dev",
+      "intent": "refund_policy",
+      "language": "en",
+      "query": "Exactly how many days does Olist allow customers to request a refund?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No verified Olist refund policy is present. A review requesting money back is not a policy."
+    },
+    {
+      "id": "dev-refund_policy-pt",
+      "split": "dev",
+      "intent": "refund_policy",
+      "language": "pt",
+      "query": "Qual é o prazo oficial da Olist para pedir um reembolso?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No verified Olist refund policy is present. A review requesting money back is not a policy."
+    },
+    {
+      "id": "dev-weather-en",
+      "split": "dev",
+      "intent": "weather",
+      "language": "en",
+      "query": "Will it rain tomorrow in Berlin?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No weather data or current forecast in the corpus."
+    },
+    {
+      "id": "dev-weather-pt",
+      "split": "dev",
+      "intent": "weather",
+      "language": "pt",
+      "query": "Vai chover amanhã em Berlim?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No weather data or current forecast in the corpus."
+    },
+    {
+      "id": "dev-credentials-en",
+      "split": "dev",
+      "intent": "credentials",
+      "language": "en",
+      "query": "What is my account password and login code?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No account credentials or private account data in the public corpus."
+    },
+    {
+      "id": "dev-credentials-pt",
+      "split": "dev",
+      "intent": "credentials",
+      "language": "pt",
+      "query": "Qual é a minha senha e o código de acesso da conta?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No account credentials or private account data in the public corpus."
+    },
+    {
+      "id": "test-not_received-en",
+      "split": "test",
+      "intent": "not_received",
+      "language": "en",
+      "query": "Which reviews report that an item had not arrived when the review was written?",
+      "answerable": true,
+      "relevant_ids": [
+        "review-3b9c060b9abc326e",
+        "review-77c5facf3abdf22a",
+        "review-986fabda2341358e",
+        "review-e07729085cf49106",
+        "review-7d7111484afb0c0b",
+        "review-097bbf0233097db7",
+        "review-499ed2aea27817d9",
+        "review-1b992ea61a98a7ae",
+        "review-342c03280a1364ce",
+        "review-1f2de2c0b012aaef",
+        "review-5869770c6f668a00",
+        "review-6fae347b97406b4e",
+        "review-08bc1b7709d58683",
+        "review-e423a5a85461c473",
+        "review-7173d52f66cff48a",
+        "review-eeee0112649491db",
+        "review-c3a564cf71c6493d",
+        "review-d6a9cd06b49a2d71"
+      ],
+      "judgment_note": "Explicit nonreceipt/nondelivery phrases; no inferred resolution or verified event."
+    },
+    {
+      "id": "test-not_received-pt",
+      "split": "test",
+      "intent": "not_received",
+      "language": "pt",
+      "query": "Quais avaliações relatam que o item ainda não havia chegado quando o comentário foi escrito?",
+      "answerable": true,
+      "relevant_ids": [
+        "review-3b9c060b9abc326e",
+        "review-77c5facf3abdf22a",
+        "review-986fabda2341358e",
+        "review-e07729085cf49106",
+        "review-7d7111484afb0c0b",
+        "review-097bbf0233097db7",
+        "review-499ed2aea27817d9",
+        "review-1b992ea61a98a7ae",
+        "review-342c03280a1364ce",
+        "review-1f2de2c0b012aaef",
+        "review-5869770c6f668a00",
+        "review-6fae347b97406b4e",
+        "review-08bc1b7709d58683",
+        "review-e423a5a85461c473",
+        "review-7173d52f66cff48a",
+        "review-eeee0112649491db",
+        "review-c3a564cf71c6493d",
+        "review-d6a9cd06b49a2d71"
+      ],
+      "judgment_note": "Explicit nonreceipt/nondelivery phrases; no inferred resolution or verified event."
+    },
+    {
+      "id": "test-slow_delivery-en",
+      "split": "test",
+      "intent": "slow_delivery",
+      "language": "en",
+      "query": "Find complaints about a delivery taking too long or arriving late.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-527e28611a0aba23",
+        "review-61a35d33807e812e"
+      ],
+      "judgment_note": "Only phrases explicitly describing delay; absence of receipt alone does not establish missed promise."
+    },
+    {
+      "id": "test-slow_delivery-pt",
+      "split": "test",
+      "intent": "slow_delivery",
+      "language": "pt",
+      "query": "Encontre reclamações de demora ou atraso na entrega.",
+      "answerable": true,
+      "relevant_ids": [
+        "review-527e28611a0aba23",
+        "review-61a35d33807e812e"
+      ],
+      "judgment_note": "Only phrases explicitly describing delay; absence of receipt alone does not establish missed promise."
+    },
+    {
+      "id": "test-regression_metrics-en",
+      "split": "test",
+      "intent": "regression_metrics",
+      "language": "en",
+      "query": "Which delivery-time error measure gives more weight to large mistakes, and can R-squared be negative?",
+      "answerable": true,
+      "relevant_ids": [
+        "72dc84c646ac173e"
+      ],
+      "judgment_note": "Regression note explicitly says RMSE weights larger errors and R-squared can be negative; no unsupported claim about RMSE units."
+    },
+    {
+      "id": "test-regression_metrics-pt",
+      "split": "test",
+      "intent": "regression_metrics",
+      "language": "pt",
+      "query": "Qual métrica de erro de duração dá mais peso aos erros grandes, e o R-quadrado pode ser negativo?",
+      "answerable": true,
+      "relevant_ids": [
+        "72dc84c646ac173e"
+      ],
+      "judgment_note": "Regression note explicitly says RMSE weights larger errors and R-squared can be negative; no unsupported claim about RMSE units."
+    },
+    {
+      "id": "test-source_license-en",
+      "split": "test",
+      "intent": "source_license",
+      "language": "en",
+      "query": "Which public data source and redistribution license does this workspace use?",
+      "answerable": true,
+      "relevant_ids": [
+        "7fc246b09dd47cc5"
+      ],
+      "judgment_note": "Source note names publisher, dataset link and CC BY-NC-SA terms."
+    },
+    {
+      "id": "test-source_license-pt",
+      "split": "test",
+      "intent": "source_license",
+      "language": "pt",
+      "query": "Qual é a fonte dos dados públicos e a licença de redistribuição deste projeto?",
+      "answerable": true,
+      "relevant_ids": [
+        "7fc246b09dd47cc5"
+      ],
+      "judgment_note": "Source note names publisher, dataset link and CC BY-NC-SA terms."
+    },
+    {
+      "id": "test-leakage-en",
+      "split": "test",
+      "intent": "leakage",
+      "language": "en",
+      "query": "Can review ratings or actual delivery timestamps be used to predict an order at purchase time?",
+      "answerable": true,
+      "relevant_ids": [
+        "b5af01eec0b3f7e7",
+        "10c8e0b618929317"
+      ],
+      "judgment_note": "Both passages explicitly exclude post-outcome fields from purchase-time predictions."
+    },
+    {
+      "id": "test-leakage-pt",
+      "split": "test",
+      "intent": "leakage",
+      "language": "pt",
+      "query": "Posso usar avaliações e a data real de entrega para prever um pedido no momento da compra?",
+      "answerable": true,
+      "relevant_ids": [
+        "b5af01eec0b3f7e7",
+        "10c8e0b618929317"
+      ],
+      "judgment_note": "Both passages explicitly exclude post-outcome fields from purchase-time predictions."
+    },
+    {
+      "id": "test-causality-en",
+      "split": "test",
+      "intent": "causality",
+      "language": "en",
+      "query": "Does a high feature-importance ranking prove that changing this feature will cause better business outcomes?",
+      "answerable": true,
+      "relevant_ids": [
+        "23f220b243b8bee0"
+      ],
+      "judgment_note": "Method note distinguishes predictive association from causation."
+    },
+    {
+      "id": "test-causality-pt",
+      "split": "test",
+      "intent": "causality",
+      "language": "pt",
+      "query": "A importância alta de uma variável prova que alterá-la causa melhores resultados no negócio?",
+      "answerable": true,
+      "relevant_ids": [
+        "23f220b243b8bee0"
+      ],
+      "judgment_note": "Method note distinguishes predictive association from causation."
+    },
+    {
+      "id": "test-evidence_scope-en",
+      "split": "test",
+      "intent": "evidence_scope",
+      "language": "en",
+      "query": "Do the published review excerpts represent the complete marketplace review archive?",
+      "answerable": true,
+      "relevant_ids": [
+        "1b6994385e5d8c23"
+      ],
+      "judgment_note": "Bounded source selection is explicitly unrepresentative and incomplete."
+    },
+    {
+      "id": "test-evidence_scope-pt",
+      "split": "test",
+      "intent": "evidence_scope",
+      "language": "pt",
+      "query": "Os trechos públicos representam o arquivo completo de avaliações da plataforma?",
+      "answerable": true,
+      "relevant_ids": [
+        "1b6994385e5d8c23"
+      ],
+      "judgment_note": "Bounded source selection is explicitly unrepresentative and incomplete."
+    },
+    {
+      "id": "test-medical-en",
+      "split": "test",
+      "intent": "medical",
+      "language": "en",
+      "query": "What medication should I take for a severe headache?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No medical knowledge or clinical advice in this source library."
+    },
+    {
+      "id": "test-medical-pt",
+      "split": "test",
+      "intent": "medical",
+      "language": "pt",
+      "query": "Qual remédio devo tomar para uma dor de cabeça forte?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No medical knowledge or clinical advice in this source library."
+    },
+    {
+      "id": "test-personal_order-en",
+      "split": "test",
+      "intent": "personal_order",
+      "language": "en",
+      "query": "What is the exact current delivery status of my order number 456789?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "Historical public excerpts cannot identify or track a live personal order."
+    },
+    {
+      "id": "test-personal_order-pt",
+      "split": "test",
+      "intent": "personal_order",
+      "language": "pt",
+      "query": "Qual é o status atual exato do meu pedido número 456789?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "Historical public excerpts cannot identify or track a live personal order."
+    },
+    {
+      "id": "test-future_revenue-en",
+      "split": "test",
+      "intent": "future_revenue",
+      "language": "en",
+      "query": "What will Olist revenue be next year in euros?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No current revenue, future business forecast or exchange-rate evidence."
+    },
+    {
+      "id": "test-future_revenue-pt",
+      "split": "test",
+      "intent": "future_revenue",
+      "language": "pt",
+      "query": "Qual será a receita da Olist no próximo ano em euros?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No current revenue, future business forecast or exchange-rate evidence."
+    },
+    {
+      "id": "test-other_company-en",
+      "split": "test",
+      "intent": "other_company",
+      "language": "en",
+      "query": "What is the current return policy of Zalando?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No current policy evidence for a different company."
+    },
+    {
+      "id": "test-other_company-pt",
+      "split": "test",
+      "intent": "other_company",
+      "language": "pt",
+      "query": "Qual é a política atual de devolução da Zalando?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "No current policy evidence for a different company."
+    },
+    {
+      "id": "test-unknown_resolution-en",
+      "split": "test",
+      "intent": "unknown_resolution",
+      "language": "en",
+      "query": "Has the seller already approved a replacement for my defective item?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "Defect complaints contain no current customer-specific exchange approvals."
+    },
+    {
+      "id": "test-unknown_resolution-pt",
+      "split": "test",
+      "intent": "unknown_resolution",
+      "language": "pt",
+      "query": "O vendedor já aprovou uma substituição para o meu produto com defeito?",
+      "answerable": false,
+      "relevant_ids": [],
+      "judgment_note": "Defect complaints contain no current customer-specific exchange approvals."
+    }
+  ],
+  "benchmark_version": "1.1",
+  "audit_log": [
+    {
+      "version": "1.1",
+      "previous_manifest_fingerprint": "8f5782510fb5764fafecf88aac19122a28ee2805fc11e0574238ab7a679219f4",
+      "review": "AI-assisted second-agent source/wording audit, conducted without consulting retrieval model scores; not independent human validation.",
+      "changes": [
+        "Qualified nonreceipt as a statement at review-writing time, not proof a product never arrived.",
+        "Changed regression question to concepts explicitly stated in its relevant passage.",
+        "Clarified bilingual units and category IDs versus semantic independence."
+      ],
+      "evaluation_protocol": "Only source-fidelity wording and description corrected after initial scoring; no model, relevance IDs, threshold rule or development questions changed. Recomputed the frozen artifact once."
+    }
+  ]
+}

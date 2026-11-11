@@ -18,9 +18,11 @@
 
 ## Next milestones
 
-1. Improve the recorded Olist benchmark using a separate validation period, better order-time features and imbalance-aware analysis; preserve a locked test period for future claims.
-2. Dense embeddings, hybrid search and reranking evaluated against the lexical baseline on human-checked questions.
-3. Hyperparameter search using training/validation only, followed by one locked test.
+The v0.3 research extension adds a retrospective word/character review-classification ablation, per-class errors, a repeated-wording audit and group-bootstrap intervals. It also measures lexical/E5 dense/RRF retrieval on 40 AI-authored seed questions in 20 bilingual category pairs, with an opt-in browser encoder and runtime compatibility checks. The technical walkthrough includes reproduction steps and exercises for independent practice. These are completed implementations; independent human relevance review and external validation are still outstanding.
+
+1. Investigate the weak neutral-rating class and delivery-model failures. Use separate development periods and document the retrospective status of any already inspected test data; acquire a genuinely new evaluation period or dataset for confirmation.
+2. Have the project owner independently audit the seed retrieval labels and extend them with realistic questions written before inspecting rankings. Diagnose Portuguese-language failures and hybrid false acceptance. Evaluate any future reranker against the declared baselines.
+3. Broaden temporal validation and bounded hyperparameter search within training/validation data, followed by a new frozen evaluation. Preserve unsuccessful experiments.
 4. Exportable trained pipelines and validated record-level prediction endpoints.
 5. Compare the implemented TF-IDF review rating-group classifier with a fine-tuned multilingual transformer.
 6. MLflow experiment integration, drift analysis and monitoring beyond the existing local run log.

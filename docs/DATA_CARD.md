@@ -4,6 +4,8 @@ The public demo uses the Olist source archive under CC BY-NC-SA 4.0. It retains 
 
 Only aggregates, small numeric previews, learned numeric model coefficients and 126 inspected short Portuguese review excerpts are published. Source customer/order/seller identifiers are omitted from public previews. The excerpt set favors repeated short phrases and excludes recognizable contact/address patterns; it is a demonstration evidence corpus rather than a representative review sample. Review groups reflect ratings 1–2, 3 and 4–5, which can disagree with wording.
 
+The review research artifact publishes aggregate split statistics, evaluation scores, confusion matrices and duplicate-text audits. It does not publish the raw text, order IDs or individual predictions used in the deeper experiment. The semantic retrieval study reuses the bounded public evidence corpus and exports its dense representations with model provenance. Its question/relevance labels were authored with AI assistance; they are not independent human annotations. Reviewing those labels and testing a different corpus remain necessary before stronger retrieval claims.
+
 The separate local synthetic demo contains 1,400 generated order records, seed 42. Dates span a simulated 2024–2025 period. Categories, seller identifiers, monetary amounts, distances and outcomes are invented. This fixture validates software behavior; its scores do not estimate performance on real customer data.
 
 Order-time inputs include order value, freight, distance, item count, product category and promised days. Delivery duration, late flag and review rating are outcome fields. `outcome_available_date` records the simulated delivery time and prevents training on labels not yet available at a temporal cutoff.

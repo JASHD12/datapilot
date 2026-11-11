@@ -10,6 +10,16 @@ The public workspace uses **real historical Olist data**: delivery models on 96,
 
 The public report is deterministic and source-linked. It does not call an LLM or claim to implement generative RAG. The optional provider integration remains separate from the public no-API-bill demo.
 
+## Research studies
+
+The **Research** view connects measured results to the decisions behind them:
+
+- [Review classification under repeated wording](docs/REVIEW_STUDY.md): chronological training/validation/test partitions, a fixed word/character TF-IDF ablation, validation-only selection, per-class errors, a duplicate-text robustness subset and paired group-bootstrap intervals. The study is retrospective and preserves the original benchmark.
+- [Multilingual retrieval](docs/RETRIEVAL_STUDY.md): compare lexical TF-IDF, pretrained multilingual E5 embeddings and reciprocal-rank fusion. Inspect judged questions, ranking errors and abstention, then try an optional browser query encoder. The seed relevance labels were authored with AI assistance and still require independent human review.
+- [Technical walkthrough and practice guide](docs/WALKTHROUGH.md): follow an example through the code, reproduce checks and work through changes you can explain in an interview.
+
+Saved experiment tables require no model download. Live semantic search is opt-in: it downloads a substantial pretrained model/runtime once, then computes query embeddings on the visitor's device. It uses no embedding API or paid inference service. Device resources and third-party asset availability can limit that optional feature; ordinary source search remains available.
+
 ## Run locally
 
 Requires Python 3.11 or newer.
@@ -29,6 +39,7 @@ Open http://127.0.0.1:8000. API documentation: http://127.0.0.1:8000/docs.
 pytest
 python scripts/build_demo.py
 python scripts/build_public.py --check
+python scripts/check_research.py
 node scripts/test_browser_training.mjs
 ```
 
@@ -43,6 +54,8 @@ datapilot serve
 ```
 
 Provider calls may incur charges and send selected evidence to the configured provider. No provider calls occur in the default mode. The `.env.example` file documents variables; environment files are not loaded automatically.
+
+To reproduce the dense-retrieval experiment locally, install `pip install -e '.[semantic]'` and follow [the retrieval study](docs/RETRIEVAL_STUDY.md). `requirements-semantic.lock` pins the measured optional environment on top of the base lock. Its pretrained model is downloaded separately with a pinned revision; no remote model code is executed. The ordinary application and offline integrity checks do not require the semantic extra.
 
 ## Product
 

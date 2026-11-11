@@ -15,6 +15,9 @@ jobs:
       - run: python scripts/build_demo.py --check
       - run: python scripts/build_public.py --check
       - run: python scripts/build_browser_sample.py --check
+      - run: python scripts/check_research.py
       - run: node --check frontend/app.js
       - run: node scripts/test_browser_training.mjs
+      - run: node --check frontend/semantic-search.js
+      - run: node scripts/test_semantic_search.mjs
 

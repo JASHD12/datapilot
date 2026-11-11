@@ -11,5 +11,12 @@ offline model results, learned numeric coefficients, and a bounded selection
 of short redacted review excerpts. These Olist-derived artifacts are shared
 under CC BY-NC-SA 4.0. Preserve attribution and the applicable terms.
 
+review-study.json adds aggregate rating-group evaluations and duplicate-text audits.
+retrieval-study.json reuses the bounded evidence corpus and includes derived
+representations and retrieval evaluations. Olist-derived content in these
+research artifacts retains the same CC BY-NC-SA 4.0 attribution and terms.
+Pretrained model provenance and its separate license are recorded in the
+retrieval artifact; no pretrained model weights are embedded in this site.
+
 DataPilot application code is separately MIT licensed. This educational
 portfolio demonstration is independent and is not endorsed by Olist.
