@@ -2,7 +2,7 @@
 
 A reusable workbench for data exploration, evaluated machine learning and answers with visible evidence. Built by Jashdeep Singh.
 
-[Live Olist demo](https://jashdeep-datapilot.generousegret2.chatgpt.site) · [Source repository](https://github.com/JASHD12/datapilot) · [Implementation](docs/ARCHITECTURE.md) · [Real-data benchmark](docs/BENCHMARKS.md) · [Deployment](docs/DEPLOYMENT.md)
+[Live Olist demo](https://jashdeep-datapilot.pages.dev) · [Source repository](https://github.com/JASHD12/datapilot) · [Implementation](docs/ARCHITECTURE.md) · [Real-data benchmark](docs/BENCHMARKS.md) · [Deployment](docs/DEPLOYMENT.md)
 
 The public workspace uses **real historical Olist data**: delivery models on 96,470 eligible delivered orders, a separate all-status order-count forecast, and text analysis of 40,423 reviews. Visitors can train a small comparison, enter an order for live browser inference, search source evidence and generate a combined report without an API key. Full-data evaluations are saved offline results; arbitrary CSV uploads and full-data training run in the local Python application. The synthetic fixture remains available for local testing.
 
