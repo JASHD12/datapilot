@@ -3,7 +3,10 @@
 (() => {
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const main = $('#main');
-  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null};
+  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null, sampleResults: {}, sampleErrors: {}, samplePending: null};
+  let sampleRequestId = 0;
+  let sampleWorker = null;
+  let samplePayload = null;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
   const number = (value, digits = 0) => Number.isFinite(Number(value)) && value !== null ? Number(value).toLocaleString('en-US', {maximumFractionDigits: digits}) : '—';
   const percent = value => Number.isFinite(Number(value)) && value !== null ? `${(Number(value) * 100).toFixed(1)}%` : '—';
@@ -80,7 +83,7 @@
   function taskResult(result) {
     if (!result) return '';
     const split = result.split || {};
-    return `<div class="result-block">${panel(`${result.task === 'classification' ? 'Classification' : 'Regression'} comparison`, `Target: ${result.target} · ${split.method || 'Recorded split'}`, modelTable(result), 'RECORDED METRICS')}
+    return `<div class="result-block" id="recorded-${esc(result.task)}" tabindex="-1">${panel(`${result.task === 'classification' ? 'Classification' : 'Regression'} comparison`, `Target: ${result.target} · ${split.method || 'Recorded split'}`, modelTable(result), 'FULL-DATA RECORDED METRICS')}
     <div class="grid-equal space-top">${panel('Inputs and validation', 'Inspect what the models were allowed to see.', `<dl class="stat-list"><div><dt>Training rows</dt><dd>${number(result.train_rows)}</dd></div><div><dt>Holdout rows</dt><dd>${number(result.test_rows)}</dd></div></dl><div class="stack-list">${(result.features || []).map(feature => `<span class="stack-chip">${esc(feature)}</span>`).join('')}</div>${details('Split and feature exclusions', {split, excluded_features: result.excluded_features, selection_method: result.selection_method})}${details('Model definitions', result.model_definitions || [])}`, 'TIME BOUNDARY')}${panel('Feature importance', 'Model associations, not evidence of physical causation.', bars(result.feature_importance || [], 'feature', 'importance'), 'PREDECLARED MODEL')}</div>${limits(result.limitations)}${details('Run provenance', result.provenance || {data_provenance: result.data_provenance})}${details('Holdout examples', result.predictions || [])}</div>`;
   }
 
@@ -92,27 +95,42 @@
       `<div class="section-heading"><h2>A closer look at the records</h2><p>First ${Math.min(12, p.preview?.length || 0)} rows · scroll to inspect all fields</p></div><section class="panel">${table(p.preview, null, 12)}</section>` +
       details('Column quality report', columns) + details('Numerical summaries', p.summary || {}) + note(source().description || 'Confirm the provenance and permitted use of uploaded data.');
   }
+  function sampleResult(task) {
+    const pending = state.samplePending?.task === task;
+    const result = state.sampleResults[task];
+    const failure = state.sampleErrors[task];
+    if (pending) return `<div class="sample-status" role="status"><span class="loader"></span><p>Loading the Olist sample and training three models in your browser…</p></div>`;
+    if (failure) return `<div class="sample-error" role="alert">${esc(failure)} You can retry the comparison.</div>`;
+    if (!result) return '';
+    return `<section class="sample-result" id="sample-${task}" tabindex="-1"><div class="eyebrow">LIVE BROWSER SAMPLE RESULT</div><h3>${task === 'regression' ? 'Delivery-duration' : 'Late-delivery'} comparison complete</h3><p>${number(result.train_rows)} earlier training orders · ${number(result.test_rows)} later holdout orders · seed 42 · ${number(result.runtime_ms / 1000, 2)} seconds. ${task === 'regression' ? 'MAE and RMSE are in days.' : 'Precision and recall use late delivery as the positive class.'}</p>${modelTable(result)}${details('Sample split, algorithms and provenance', {split:result.split,model_definitions:result.model_definitions,provenance:result.provenance})}${limits(result.limitations)}</section>`;
+  }
+  function comparisonCard(task, title, description) {
+    const target = results()[task]?.target || (task === 'classification' ? 'delivery_late' : 'delivery_days');
+    const browserTraining = state.replay && source().kind === 'public';
+    const unavailable = state.replay && !browserTraining;
+    return `<section class="model-card"><div class="eyebrow">${task === 'classification' ? 'BINARY CLASSIFICATION' : 'REGRESSION'}</div><h2>${title}</h2><p>${description}</p>${browserTraining ? '<p class="sample-explainer">Train on 1,600 historical Olist orders and evaluate on 400 later orders, entirely in your browser. The full-data benchmark stays separate below.</p>' : unavailable ? '<p class="sample-explainer">This workspace contains recorded comparisons. Open the Olist example to train a small sample in your browser.</p>' : ''}<form data-form="train-${task}" class="model-controls"><div class="field"><label for="${task}-target">TARGET COLUMN${browserTraining ? ' · FIXED DEMO TARGET' : ''}</label><input id="${task}-target" name="target" value="${esc(target)}" required maxlength="128" ${state.replay ? 'readonly' : ''}></div>${unavailable ? button('view-comparison','View recorded comparison',true,`data-task="${task}"`) : `<button class="button primary" ${state.samplePending ? 'disabled' : ''}>${state.samplePending?.task === task ? 'Training sample…' : browserTraining ? 'Run sample comparison' : 'Run comparison'}</button>`}</form>${sampleResult(task)}</section>`;
+  }
   function models() {
-    return heading('02 / Model evaluation', 'Compare. Then explain.', 'Evaluate fixed model families against simple baselines. Inspect the prediction target, inputs and holdout before interpreting a score.', button('export-results', 'Export results')) + strip() +
-      `<div class="model-intro"><section class="model-card"><div class="eyebrow">BINARY CLASSIFICATION</div><h2>Predict an outcome</h2><p>Compare a majority baseline, logistic regression and a random forest on a binary target.</p><form data-form="train-classification" class="model-controls"><div class="field"><label for="classification-target">TARGET COLUMN</label><input id="classification-target" name="target" value="${esc(results().classification?.target || 'delivery_late')}" required maxlength="128"></div><button class="button primary" ${state.replay ? 'disabled' : ''}>Run comparison</button></form></section><section class="model-card"><div class="eyebrow">REGRESSION</div><h2>Estimate a quantity</h2><p>Compare a median baseline, ridge regression and a random forest on a numeric target.</p><form data-form="train-regression" class="model-controls"><div class="field"><label for="regression-target">TARGET COLUMN</label><input id="regression-target" name="target" value="${esc(results().regression?.target || 'delivery_days')}" required maxlength="128"></div><button class="button primary" ${state.replay ? 'disabled' : ''}>Run comparison</button></form></section></div>` +
+    return heading('02 / Model evaluation', 'Compare. Then explain.', 'Train a small browser experiment or inspect the recorded full-data study. Each result shows its own sample, validation split and algorithms.', button('export-results', 'Export results')) + strip() +
+      `<div class="model-intro">${comparisonCard('classification','Predict an outcome','Compare a majority baseline, logistic regression and a random forest on a binary target.')}${comparisonCard('regression','Estimate a quantity','Compare a median baseline, ridge regression and a random forest on a numeric target.')}</div>` +
       inferencePanel() + (results().classification || results().regression ? taskResult(results().classification) + taskResult(results().regression) : panel('Your experiment results', '', empty('Ready when your data is', 'Run a comparison above. Metrics and model assumptions will appear here.'))) +
       note('The initial delivery workflow excludes known post-outcome fields. Column-name checks cannot prove that arbitrary uploaded data are free from leakage. Confirm the prediction-time availability of every input.');
   }
   function forecast() {
     const f = results().forecast;
-    const form = `<form data-form="forecast" class="model-controls"><div class="field"><label for="forecast-date">DATE COLUMN</label><input id="forecast-date" name="date_column" value="${esc(f?.date_column || 'purchase_date')}" maxlength="128" required></div><button class="button primary" ${state.replay ? 'disabled' : ''}>Run forecast</button></form>`;
+    const form = state.replay ? `<p class="sample-explainer">This is a saved historical forecast. Full-series retraining runs in the local Python app.</p>${button('view-forecast','View recorded forecast',true)}` : `<form data-form="forecast" class="model-controls"><div class="field"><label for="forecast-date">DATE COLUMN</label><input id="forecast-date" name="date_column" value="${esc(f?.date_column || 'purchase_date')}" maxlength="128" required></div><button class="button primary">Run forecast</button></form>`;
     let html = heading('03 / Time series', 'Look ahead, with context.', source().kind === 'public' ? 'Historical all-status order counts, January 2017–August 2018. This series differs from the delivered-order modeling cohort.' : 'Forecast daily row counts using only earlier observations. Compare the learned model with a weekly seasonal baseline.') + strip() + panel('Forecast setup', 'At least 84 calendar days are required. Verify that the extract contains complete history.', form, '14-DAY OUTPUT');
     if (!f) return html + panel('Forecast results', '', empty('No forecast recorded', 'Run a forecast above to view the rolling one-day backtest and 14-day recursive projection.'));
     const joined = [...(f.history || []).slice(-35).map(row => ({date: row.date, observed: row.count})), ...(f.forecast || []).map(row => ({...row, observed: null}))];
-    html += `<div class="space-top">${panel('Observed history and projection', 'Future values are model output, not observed orders.', lineChart(joined, [{key:'observed', label:'Observed', color:'#167a6e'}, {key:'predicted',label:'Recursive forecast',color:'#5b89a6',dashed:true}, {key:'lower',label:'Exploratory lower band',color:'#bbc8bd',width:1}, {key:'upper',label:'Exploratory upper band',color:'#bbc8bd',width:1}]), '14 DAYS', f.interval?.warning || '')}</div>`;
+    html += `<div class="space-top" id="recorded-forecast" tabindex="-1">${panel('Observed history and projection', 'Future values are model output, not observed orders.', lineChart(joined, [{key:'observed', label:'Observed', color:'#167a6e'}, {key:'predicted',label:'Recursive forecast',color:'#5b89a6',dashed:true}, {key:'lower',label:'Exploratory lower band',color:'#bbc8bd',width:1}, {key:'upper',label:'Exploratory upper band',color:'#bbc8bd',width:1}]), '14 DAYS', f.interval?.warning || '')}</div>`;
     html += `<div class="grid-equal space-top">${panel('Rolling one-day backtest', 'Recorded observations become available one day at a time.', lineChart(f.backtest, [{key:'actual',label:'Actual',color:'#167a6e'},{key:'predicted',label:'Ridge prediction',color:'#5b89a6'},{key:'seasonal_naive',label:'Weekly naive',color:'#bbab7d',dashed:true}]), '28-DAY HOLDOUT')}${panel('Baseline comparison', 'These metrics evaluate one-day predictions, not the full recursive horizon.', modelTable(f), 'MAE / RMSE')}</div>` + details('Forecast values and bands', f.forecast) + details('Validation and interval method', {split:f.split, interval:f.interval, model_definitions:f.model_definitions}) + limits(f.limitations);
     return html;
   }
   function segments() {
     const s = results().segments;
-    let html = heading('04 / Unsupervised exploration', 'Find structure. Question outliers.', 'Explore numeric operational profiles with K-means and Isolation Forest. An unusual record is a reason to investigate, not a verified incident.', button('run-segments', 'Analyze profiles', true, state.replay ? 'disabled' : '')) + strip();
+    let html = heading('04 / Unsupervised exploration', 'Find structure. Question outliers.', 'Explore recorded numeric profiles with K-means and Isolation Forest. Full-data clustering runs in the local app; these results remain available to inspect.', button(state.replay ? 'view-segments' : 'run-segments', state.replay ? 'View recorded profiles' : 'Analyze profiles', true)) + strip();
     if (!s) return html + panel('Profile analysis', '', empty('No analysis recorded', 'Analyze profiles to inspect clusters and unusual numeric records.'));
-    html += `<div class="metrics">${metric('Profiles analyzed', number(s.rows), 'Rows in the active dataset')}${metric('Clusters', number(s.cluster_count), 'Arbitrary K-means identifiers', 'segments')}${metric('Silhouette', number(s.silhouette, 3), 'Descriptive separation score', 'models')}${metric('Unusual profiles', number(s.anomaly_count), 'Isolation Forest flags', 'shield')}</div>`;
+    html += `<div class="metrics" id="recorded-segments" tabindex="-1">${metric('Profiles analyzed', number(s.rows), 'Rows in the active dataset')}${metric('Clusters', number(s.cluster_count), 'Arbitrary K-means identifiers', 'segments')}${metric('Silhouette', number(s.silhouette, 3), 'Descriptive separation score', 'models')}${metric('Unusual profiles', number(s.anomaly_count), 'Isolation Forest flags', 'shield')}</div>`;
     html += `<div class="grid-equal">${panel('Cluster sizes', 'Cluster labels are identifiers, not business categories.', bars((s.clusters || []).map(row => ({category:`Cluster ${row.cluster}`,count:row.count}))), 'STANDARDIZED INPUTS')}${panel('Analysis inputs', 'Numeric inputs are median-imputed and standardized.', `<div class="stack-list">${(s.features || []).map(feature=>`<span class="stack-chip">${esc(feature)}</span>`).join('')}</div>${details('Cluster mean profiles', s.clusters || [])}${details('Algorithm and exclusions', {algorithm:s.algorithm,excluded_features:s.excluded_features})}`, 'EXPLORATORY')}</div>`;
     html += panel('Records to investigate', 'Highest unusualness scores; not labeled fraud or equipment faults.', table((s.anomalies || []).map(row => ({row:row.row,score:row.score,flagged:row.flagged,...row.values}))), 'TOP RECORDED SCORES') + limits(s.limitations);
     return html;
@@ -257,6 +275,9 @@
       if(combined||/review|complaint|sentiment|feedback/.test(query)){
         include('read_review_analysis',{models:a.models,themes:a.complaint_themes,labeled_rows:a.labeled_rows},a.models?.length?`${metricReport(a,'Review rating-group classification')}\nLow-rating keyword themes: ${(a.complaint_themes||[]).map(row=>`${row.theme}: ${number(row.count)}`).join('; ')}. Themes may overlap, and rating groups are proxies for sentiment.`:'No review experiment is available.');
       }
+      if((combined||/sample|browser training/.test(query))&&Object.keys(state.sampleResults).length){
+        include('read_live_browser_comparisons',state.sampleResults,'Live browser sample experiments — separate from the recorded full-data study:\n'+Object.values(state.sampleResults).map(result=>`${number(result.train_rows)} training / ${number(result.test_rows)} later holdout orders. ${metricReport(result,result.task+' sample comparison')}`).join('\n\n'));
+      }
     }
     const complaintQuestion=/complaint|problem|negative review/.test(query);
     const corpus=complaintQuestion ? (state.workspace.knowledge_chunks||[]).filter(hit=>!String(hit.id||'').startsWith('review-')||hit.label==='negative') : null;
@@ -275,7 +296,7 @@
     const url=URL.createObjectURL(new Blob([markdown],{type:'text/markdown;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=source().kind === 'public'?'datapilot-olist-report.md':'datapilot-workspace-report.md';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   async function loadOlist() {
-    try{const response=await fetch('./olist-snapshot.json');if(!response.ok)throw new Error('The Olist artifact is unavailable. Build scripts/build_olist_demo.py first.');state.workspace=await response.json();state.replay=true;state.answer=null;state.prediction=null;state.search=[];markConnection();render();toast('Historical Olist workspace opened. Browser tools are live; evaluations are saved.');}catch(error){toast(error.message,true);}
+    try{const response=await fetch('./olist-snapshot.json');if(!response.ok)throw new Error('The Olist artifact is unavailable. Build scripts/build_olist_demo.py first.');clearSampleExperiments();state.workspace=await response.json();state.replay=true;state.answer=null;state.prediction=null;state.search=[];markConnection();render();toast('Historical Olist workspace opened. Browser tools are live; evaluations are saved.');}catch(error){toast(error.message,true);}
   }
   function project() {
     const rows = profile().charts?.daily_orders || [];
@@ -293,7 +314,7 @@
     <div class="project-meta"><div><span>PROJECT TYPE</span><strong>AI / ML / Data Science</strong></div><div><span>DELIVERY</span><strong>Python API + browser workbench</strong></div><div><span>STATUS</span><strong>Initial working implementation</strong></div></div>
     <div class="project-intro"><h2>Broad capabilities.<br>A concrete workflow.</h2><p>The same workspace connects data quality, predictive modeling, forecasting and documentary evidence. A real Olist workspace connects delivery models, order forecasting, operational profiles and customer reviews. Configurable uploads let the local application work with other compatible datasets. Claims are tied to their data source and evaluation setup.</p></div>
     <div class="capability-grid">${capabilities.map(([glyph,title,text,tags,status])=>`<article class="capability"><div class="capability-top"><span class="capability-icon">${icon(glyph)}</span><span class="tag ${status==='ROADMAP'?'amber':''}">${status}</span></div><h3>${title}</h3><p>${text}</p><div class="stack-list">${tags.map(tag=>`<span class="stack-chip">${tag}</span>`).join('')}</div></article>`).join('')}</div>
-    <section class="panel architecture"><div class="section-heading" style="margin-top:0"><h2>The system, at a glance</h2><span class="panel-tag">REPRODUCIBLE BY DESIGN</span></div><div class="architecture-flow">${[['01','Data & documents','Validated CSVs and a versioned source library'],['02','Analysis & models','Profiles, fixed comparisons and temporal backtests'],['03','Tools & evidence','Stored metrics, source retrieval and bounded routing'],['04','The workbench','A visible result, assumptions and an audit trail']].map(([n,title,text],i)=>`${i?'<span class="architecture-arrow" aria-hidden="true">→</span>':''}<div class="architecture-node"><span>${n}</span><strong>${title}</strong><small>${text}</small></div>`).join('')}</div><div class="architecture-footer">Evaluation is saved; predictions, search and evidence reports run in your browser. Training and uploads run in the local application. No provider key is embedded.</div></section>
+    <section class="panel architecture"><div class="section-heading" style="margin-top:0"><h2>The system, at a glance</h2><span class="panel-tag">REPRODUCIBLE BY DESIGN</span></div><div class="architecture-flow">${[['01','Data & documents','Validated CSVs and a versioned source library'],['02','Analysis & models','Profiles, fixed comparisons and temporal backtests'],['03','Tools & evidence','Stored metrics, source retrieval and bounded routing'],['04','The workbench','A visible result, assumptions and an audit trail']].map(([n,title,text],i)=>`${i?'<span class="architecture-arrow" aria-hidden="true">→</span>':''}<div class="architecture-node"><span>${n}</span><strong>${title}</strong><small>${text}</small></div>`).join('')}</div><div class="architecture-footer">Full-data evaluation is saved. Small sample comparisons train in your browser, alongside predictions, search and reports. Full-data training and uploads use the local application. No provider key is embedded.</div></section>
     <div class="grid-equal space-top">${panel('What makes the work inspectable','Implementation choices that matter in a review.',`<ul class="detail-list"><li><span>Metrics</span><strong>Computed, never decorative</strong></li><li><span>Validation</span><strong>Time boundaries and baseline comparisons</strong></li><li><span>Evidence</span><strong>Tool outputs and cited passages</strong></li><li><span>Limits</span><strong>Visible alongside the results</strong></li></ul>`,'ENGINEERING CHOICES')}${panel('Next research questions','Planned work, not completed claims.',`<ol class="roadmap"><li><span>01</span><div><h3>Retrieval quality</h3><p>Compare lexical, dense and hybrid retrieval on a checked question set.</p></div></li><li><span>02</span><div><h3>Model generalization</h3><p>Evaluate additional real datasets and predictive tasks with suitable labels.</p></div></li><li><span>03</span><div><h3>Multimodal evidence</h3><p>Add document extraction and evaluate field-level correctness.</p></div></li></ol>`,'ROADMAP')}</div>
     ${attribution()}${note(source().description || 'Results describe only the active dataset. The project is an initial implementation, not a claim of production business impact.')}
     <section class="project-final"><div><h2>Inspect the project yourself.</h2><p>Follow a dataset from its source through a model comparison to an evidence report.</p></div><a class="button large" href="#models">Explore the results <span aria-hidden="true">↗</span></a></section></div>`;
@@ -320,7 +341,69 @@
   function markConnection() {
     const indicator=$('#connection-indicator'); indicator.className=`connection${state.replay?' replay':''}`;
     indicator.innerHTML=`<span class="status-dot"></span>${state.replay ? source().kind === 'public' ? 'Public Olist demo' : 'Synthetic replay' : 'Local API connected'}`;
-    $('#replay-banner').hidden=!state.replay; if(state.replay) $('#replay-banner').innerHTML=`<span class="replay-mark">i</span><span><strong>${source().kind === 'public' ? 'Public Olist workspace' : 'Synthetic demonstration'}</strong> — saved evaluation · live browser predictions, search and evidence reports. Uploads and training require the local app.</span><a href="#project">How it works ↗</a>`;
+    $('#replay-banner').hidden=!state.replay; if(state.replay) $('#replay-banner').innerHTML=`<span class="replay-mark">i</span><span><strong>${source().kind === 'public' ? 'Public Olist workspace' : 'Synthetic demonstration'}</strong> — live sample training, predictions, search and reports. Full-data evaluations are saved; uploads and full-data training use the local app.</span><a href="#project">How it works ↗</a>`;
+  }
+  function revealResult(id) {
+    const element=document.getElementById(id);
+    if(!element)return;
+    element.focus({preventScroll:true});
+    element.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function clearSampleExperiments() {
+    sampleRequestId+=1;
+    sampleWorker?.terminate(); sampleWorker=null;
+    state.samplePending=null; state.sampleResults={}; state.sampleErrors={};
+  }
+  async function runSampleComparison(task, target) {
+    if(state.samplePending)return;
+    const id=++sampleRequestId, workspaceHash=state.workspace.dataset_hash;
+    state.samplePending={id,task}; state.sampleErrors[task]=null;
+    render();
+    let worker, timer;
+    try {
+      if(typeof Worker==='undefined')throw new Error('This browser does not support background model training. Use a current browser.');
+      if(!samplePayload){
+        const response=await fetch('./olist-training-sample.json',{cache:'no-cache'});
+        if(!response.ok)throw new Error('The training sample could not be downloaded.');
+        samplePayload=await response.json();
+      }
+      if(id!==sampleRequestId||state.workspace.dataset_hash!==workspaceHash)return;
+      const dataset=samplePayload.tasks?.[task];
+      if(!dataset||dataset.target!==target)throw new Error('The public sample supports only its fixed delivery targets.');
+      if(samplePayload.source?.archive_sha256!==source().archive_sha256)throw new Error('The sample does not match this workspace source.');
+      worker=new Worker(new URL('./browser-training.js?v=0.2.1',document.baseURI));
+      sampleWorker=worker;
+      const result=await new Promise((resolve,reject)=>{
+        timer=setTimeout(()=>reject(new Error('Training exceeded the 30-second demo limit.')),30000);
+        worker.onerror=()=>reject(new Error('The browser training worker could not run.'));
+        worker.onmessageerror=()=>reject(new Error('The training result could not be read.'));
+        worker.onmessage=event=>{
+          const message=event.data;
+          if(message?.id!==id)return;
+          if(message.error)reject(new Error(message.error));
+          else if(message.result)resolve(message.result);
+        };
+        worker.postMessage({id,task,target,dataset,seed:42});
+      });
+      if(id!==sampleRequestId||state.workspace.dataset_hash!==workspaceHash)return;
+      result.split=dataset.split;
+      result.limitations=[...(result.limitations||[]),...(dataset.limitations||[])];
+      result.provenance={execution:'Live training in a browser Web Worker',source:samplePayload.source,
+        sample_sha256:dataset.sample_sha256,seed:42,recorded_at:new Date().toISOString()};
+      state.sampleResults[task]=result;
+      toast('Sample comparison complete. The full-data benchmark is unchanged.');
+    } catch(error) {
+      if(id===sampleRequestId)state.sampleErrors[task]=error.message;
+    } finally {
+      clearTimeout(timer); worker?.terminate();
+      if(id===sampleRequestId){
+        sampleWorker=null; state.samplePending=null;
+        if(state.route==='models'){
+          render();
+          if(state.sampleResults[task])revealResult('sample-'+task);
+        }
+      }
+    }
   }
   async function mutate(operation, message) {
     if (state.replay) return toast('This is a saved replay. Run DataPilot locally to upload data or train models.');
@@ -328,7 +411,7 @@
     state.busy=true;
     document.querySelectorAll('button').forEach(button=>button.disabled=true);
     toast('Working locally. The result will appear when the operation completes.');
-    try { await operation(); state.workspace=await api('/api/workspace'); state.answer=null; render(); toast(message); }
+    try { await operation(); clearSampleExperiments(); state.workspace=await api('/api/workspace'); state.answer=null; render(); toast(message); }
     catch(error) { toast(error.message,true); render(); }
     finally { state.busy=false; }
   }
@@ -337,18 +420,25 @@
     const action=target.dataset.action;
     if(action==='upload-dataset'||action==='upload-knowledge') { if(state.replay)return toast('Uploads run in the local Python application. See the project README for setup.'); $(action==='upload-dataset'?'#dataset-file':'#knowledge-file').click(); }
     if(action==='load-olist') { loadOlist(); return; }
+    if(action==='view-comparison') { revealResult('recorded-'+target.dataset.task); return; }
+    if(action==='view-forecast') { revealResult('recorded-forecast'); return; }
+    if(action==='view-segments') { revealResult('recorded-segments'); return; }
     if(action==='combined-report') { state.answer=browserAnswer('Generate combined report'); state.question='Generate combined report'; render(); return; }
     if(action==='download-report') { downloadReport(); return; }
     if(action==='reset-demo') mutate(()=>post('/api/datasets/demo'),'Synthetic demonstration loaded.');
     if(action==='run-segments') mutate(()=>post('/api/segments'),'Profile analysis completed.');
-    if(action==='export-results') { const blob=new Blob([JSON.stringify({source:source(),dataset_hash:state.workspace.dataset_hash,results:results()},null,2)],{type:'application/json'}); const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='datapilot-results.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(link.href),1000); }
+    if(action==='export-results') { const blob=new Blob([JSON.stringify({source:source(),dataset_hash:state.workspace.dataset_hash,recorded_full_data_results:results(),live_browser_sample_results:state.sampleResults},null,2)],{type:'application/json'}); const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='datapilot-results.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(link.href),1000); }
   });
   document.addEventListener('submit',async event=>{
     const form=event.target.closest('[data-form]'); if(!form)return; event.preventDefault();
     const kind=form.dataset.form, data=Object.fromEntries(new FormData(form));
     if(kind==='predict-order') { predictOrder(data); render(); return; }
     if(kind==='review-search') { state.reviewSearch=data.query; render(); return; }
-    if(kind.startsWith('train-')) return mutate(()=>post('/api/models/train',{task:kind.slice(6),target:data.target}),'Model comparison completed.');
+    if(kind.startsWith('train-')) {
+      const task=kind.slice(6);
+      if(state.replay&&source().kind==='public')return runSampleComparison(task,data.target);
+      return mutate(()=>post('/api/models/train',{task,target:data.target}),'Model comparison completed.');
+    }
     if(kind==='forecast')return mutate(()=>post('/api/forecast',data),'Forecast completed.');
     if(kind==='search') {
       state.searchQuery=data.query; state.searchDone=true;

@@ -1,6 +1,6 @@
 # Public deployment with no model API bill
 
-The public demo uses `frontend/olist-snapshot.json`: real historical Olist evaluation results, a small source-evidence corpus and exported numeric model coefficients. Predictions, evidence search and report composition execute in the visitor's browser. There is no paid model provider, server-side training endpoint, shared API key or uploaded customer data in this deployment.
+The public demo uses `frontend/olist-snapshot.json`: real historical Olist evaluation results, a small source-evidence corpus and exported numeric model coefficients. Predictions, evidence search and report composition execute in the visitor's browser. `frontend/olist-training-sample.json` additionally supports genuine browser training on 1,600 orders with a separate 400-order holdout. There is no paid model provider, server-side training endpoint, shared API key or uploaded customer data in this deployment.
 
 The hosted demo is https://jashdeep-datapilot.generousegret2.chatgpt.site . Site access is public for unauthenticated visitors. The account's Sites availability and terms remain separate from the application; this repository does not promise unlimited or perpetual free hosting.
 
@@ -11,7 +11,9 @@ Download the official Olist archive separately, retain its attribution, and run:
 ```bash
 pip install -e '.[dev]'
 python scripts/build_public.py --zip /path/to/brazilian-ecommerce.zip
+python scripts/build_browser_sample.py --zip /path/to/brazilian-ecommerce.zip
 python scripts/build_public.py --check
+python scripts/build_browser_sample.py --check
 ```
 
 The build retrains fixed experiments and regenerates aggregate artifacts. It does not read `.datapilot/` or publish a locally uploaded workspace. To package the checked-in public artifact without raw data:
@@ -20,7 +22,9 @@ The build retrains fixed experiments and regenerates aggregate artifacts. It doe
 python scripts/build_public.py --package-only
 ```
 
-Deploy the resulting `dist/` directory as static files. No Python host is required for this public version. Model retraining and arbitrary CSV uploads remain local workflows; they are not silently simulated in the browser.
+After both artifacts are built, run `python scripts/build_public.py --package-only`, then deploy `dist/` as static files. No Python host is required. The comparison worker genuinely fits small models in the visitor's browser; full-data retraining and arbitrary CSV uploads remain local workflows. The sample and full-data metrics are intentionally separate.
+
+The browser comparison supports only the two fixed Olist targets. Numeric median imputation and scaling fit training rows only; sample selection preserves the original temporal boundary and label-availability purge. Worker time and input sizes are capped, failures restore the button, and navigation stays usable. The sample's classification holdout has only 11 late orders, so classification metrics are especially uncertain. These JavaScript estimators have their own declared parameters and are not presented as identical to scikit-learn's full-data models.
 
 ## Free static-hosting options
 

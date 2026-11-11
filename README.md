@@ -4,7 +4,9 @@ A reusable workbench for data exploration, evaluated machine learning and answer
 
 [Live Olist demo](https://jashdeep-datapilot.generousegret2.chatgpt.site) · [Source repository](https://github.com/JASHD12/datapilot) · [Implementation](docs/ARCHITECTURE.md) · [Real-data benchmark](docs/BENCHMARKS.md) · [Deployment](docs/DEPLOYMENT.md)
 
-The public workspace uses **real historical Olist data**: delivery models on 96,470 eligible delivered orders, a separate all-status order-count forecast, and text analysis of 40,423 reviews. Visitors can enter an order for live browser inference, search source evidence and generate a combined report without an API key. Evaluations are saved offline results; model training and arbitrary CSV uploads run in the local Python application. The synthetic fixture remains available for local testing.
+The public workspace uses **real historical Olist data**: delivery models on 96,470 eligible delivered orders, a separate all-status order-count forecast, and text analysis of 40,423 reviews. Visitors can train a small comparison, enter an order for live browser inference, search source evidence and generate a combined report without an API key. Full-data evaluations are saved offline results; arbitrary CSV uploads and full-data training run in the local Python application. The synthetic fixture remains available for local testing.
+
+**Run sample comparison** performs genuine browser training on 1,600 historical orders and evaluates on 400 later orders. It compares median/majority baselines, ridge/logistic regression and a 24-tree random forest in a background worker. These sample metrics are displayed separately from the recorded full-data benchmark. Public targets are fixed to delivery duration and late delivery; arbitrary target selection remains a local workflow.
 
 The public report is deterministic and source-linked. It does not call an LLM or claim to implement generative RAG. The optional provider integration remains separate from the public no-API-bill demo.
 
@@ -27,6 +29,7 @@ Open http://127.0.0.1:8000. API documentation: http://127.0.0.1:8000/docs.
 pytest
 python scripts/build_demo.py
 python scripts/build_public.py --check
+node scripts/test_browser_training.mjs
 ```
 
 Optional LangChain/LangGraph and model-provider integration:
@@ -67,6 +70,7 @@ Build the complete public example from the source archive:
 
 ```bash
 python scripts/build_public.py --zip /path/to/brazilian-ecommerce.zip
+python scripts/build_browser_sample.py --zip /path/to/brazilian-ecommerce.zip
 ```
 
 The seven connected demo capabilities are late-delivery classification, delivery-duration regression, historical order-count forecasting, exploratory order-profile segmentation, Portuguese review rating-group analysis, source-evidence investigation, and a downloadable combined report. Segments describe order profiles, not validated seller rankings. Review ratings are proxy labels, not independent sentiment annotations.

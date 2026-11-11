@@ -14,6 +14,7 @@
 - Local API, project page, replay snapshot, Docker configuration and CI tests.
 - Real Olist adapter and full delivered-cohort baseline comparison, including unsuccessful learned-model results.
 - Public Olist workspace with portable numeric inference, all-status historical forecasting, review rating-group classification and browser evidence reports.
+- Genuine browser sample comparisons with baselines, ridge/logistic regression and bounded random forests in a background worker; separate sample/full-data reports.
 
 ## Next milestones
 

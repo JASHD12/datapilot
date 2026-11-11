@@ -6,7 +6,7 @@ Source: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
 License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
 License terms: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-The public olist-snapshot.json contains filtered/aggregated source data,
+The public olist-snapshot.json and olist-training-sample.json contain filtered/aggregated source data,
 offline model results, learned numeric coefficients, and a bounded selection
 of short redacted review excerpts. These Olist-derived artifacts are shared
 under CC BY-NC-SA 4.0. Preserve attribution and the applicable terms.

@@ -14,5 +14,7 @@ jobs:
       - run: pytest
       - run: python scripts/build_demo.py --check
       - run: python scripts/build_public.py --check
+      - run: python scripts/build_browser_sample.py --check
       - run: node --check frontend/app.js
+      - run: node scripts/test_browser_training.mjs
 
