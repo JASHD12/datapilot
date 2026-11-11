@@ -13,6 +13,6 @@ mlruns/
 dist/
 *.tar.gz
 *.log
-.openai/local.json
+.openai/
 *.egg-info/
 

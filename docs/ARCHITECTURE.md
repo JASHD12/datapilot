@@ -4,7 +4,9 @@ DataPilot has two deliberately different execution modes.
 
 **Local application:** FastAPI serves a vanilla JavaScript frontend and runs pandas/scikit-learn workflows. A single local workspace accepts CSV uploads and text-based TXT/Markdown/PDF documents. Source CSVs remain in process memory; local documents and append-only SQLite experiment metadata live in ignored `.datapilot/` storage. This is a single-user application bound to loopback, not a multi-tenant production service.
 
-**Hosted replay:** the same interface reads `frontend/demo-snapshot.json`. That file is built only from the deterministic synthetic fixture, not the current upload workspace. It contains measured experiment results, bounded previews, authored demo documents and saved evidence reports. Training, upload and live assistant controls must identify their local-only status. No Python server or model provider runs on the static host.
+**Public Olist workspace:** the interface reads `frontend/olist-snapshot.json`. It contains real measured offline experiments, bounded source excerpts and exported logistic/ridge coefficients. New order predictions, ranked evidence search and report composition run in the visitor's browser. Arbitrary data uploads and model training remain local-only. No Python server or model provider runs on the static host. The separate `demo-snapshot.json` is a synthetic fallback used for testing.
+
+Delivery models and segmentation use a delivered-order cohort. Forecasting counts every recorded order status in a separately declared historical window. Review classification uses nonempty Portuguese comments, recorded rating-group targets and review answer timestamps. These populations are explicitly different; the application does not merge them into a single denominator.
 
 ```mermaid
 flowchart LR

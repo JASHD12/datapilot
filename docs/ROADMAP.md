@@ -13,6 +13,7 @@
 - Append-only experiment records with data fingerprints.
 - Local API, project page, replay snapshot, Docker configuration and CI tests.
 - Real Olist adapter and full delivered-cohort baseline comparison, including unsuccessful learned-model results.
+- Public Olist workspace with portable numeric inference, all-status historical forecasting, review rating-group classification and browser evidence reports.
 
 ## Next milestones
 
@@ -20,7 +21,7 @@
 2. Dense embeddings, hybrid search and reranking evaluated against the lexical baseline on human-checked questions.
 3. Hyperparameter search using training/validation only, followed by one locked test.
 4. Exportable trained pipelines and validated record-level prediction endpoints.
-5. Review-text classification: TF-IDF baseline versus a fine-tuned multilingual transformer.
+5. Compare the implemented TF-IDF review rating-group classifier with a fine-tuned multilingual transformer.
 6. MLflow experiment integration, drift analysis and monitoring beyond the existing local run log.
 7. Recommendation experiments on a suitable repeated-interaction dataset, evaluated chronologically.
 8. OCR, document extraction, multimodal search and MCP tools with independent benchmarks.

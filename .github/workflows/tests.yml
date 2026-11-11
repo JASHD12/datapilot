@@ -13,5 +13,6 @@ jobs:
       - run: pip install --no-deps -e .
       - run: pytest
       - run: python scripts/build_demo.py --check
+      - run: python scripts/build_public.py --check
       - run: node --check frontend/app.js
 
