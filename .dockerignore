@@ -1,0 +1,10 @@
+.git
+.venv
+.datapilot
+.pytest_cache
+__pycache__
+.env
+data/raw
+dist
+*.tar.gz
+
