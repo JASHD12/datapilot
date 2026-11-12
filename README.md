@@ -8,7 +8,7 @@ The public workspace uses **real historical Olist data**: delivery models on 96,
 
 **Run sample comparison** performs genuine browser training on 1,600 historical orders and evaluates on 400 later orders. It compares median/majority baselines, ridge/logistic regression and a 24-tree random forest in a background worker. These sample metrics are displayed separately from the recorded full-data benchmark. Public targets are fixed to delivery duration and late delivery; arbitrary target selection remains a local workflow.
 
-The public report is deterministic and source-linked. It does not call an LLM or claim to implement generative RAG. The optional provider integration remains separate from the public no-API-bill demo.
+The combined operational report remains deterministic and source-linked. **Research → Grounded generation** adds actual Llama 3.1 8B generation with retrieved evidence, source labels and an inspectable evaluation. Live questions are processed by Cloudflare within a shared free allowance; saved results remain available if that allowance is exhausted.
 
 ## Research studies
 
@@ -16,6 +16,7 @@ The **Research** view connects measured results to the decisions behind them:
 
 - [Review classification under repeated wording](docs/REVIEW_STUDY.md): chronological training/validation/test partitions, a fixed word/character TF-IDF ablation, validation-only selection, per-class errors, a duplicate-text robustness subset and paired group-bootstrap intervals. The study is retrospective and preserves the original benchmark.
 - [Multilingual retrieval](docs/RETRIEVAL_STUDY.md): compare lexical TF-IDF, pretrained multilingual E5 embeddings and reciprocal-rank fusion. Inspect judged questions, ranking errors and abstention, then try an optional browser query encoder. The seed relevance labels were authored with AI assistance and still require independent human review.
+- [Grounded language generation](docs/GENERATION_STUDY.md): 24 actual hosted model calls across 12 questions, comparing plain answers, retrieved evidence and a citation gate. The owner reviewed question labels and sources; generated-answer correctness still awaits human review. All raw outputs, failures and timings are inspectable.
 - [Technical walkthrough and practice guide](docs/WALKTHROUGH.md): follow an example through the code, reproduce checks and work through changes you can explain in an interview.
 
 Saved experiment tables require no model download. Live semantic search is opt-in: it downloads a substantial pretrained model/runtime once, then computes query embeddings on the visitor's device. It uses no embedding API or paid inference service. Device resources and third-party asset availability can limit that optional feature; ordinary source search remains available.

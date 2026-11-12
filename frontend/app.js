@@ -3,12 +3,14 @@
 (() => {
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const main = $('#main');
-  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null, sampleResults: {}, sampleErrors: {}, samplePending: null, studies: {status:'idle',review:null,retrieval:null,errors:{}}, studyTab:'review', studyCohort:'test', studyQuestionSplit:'test', studyQuestionLanguage:'all', studyQuestionKind:'all', studyCaseId:'', studyRetrievalMethod:'lexical', semantic:{status:'idle',progress:'',error:null,query:'',mode:'dense',result:null,pending:false}};
+  const state = {workspace: null, replay: false, config: {}, route: 'project', answer: null, search: [], busy: false, prediction: null, reviewSearch: '', apiWorkspace: null, sampleResults: {}, sampleErrors: {}, samplePending: null, studies: {status:'idle',review:null,retrieval:null,generation:null,errors:{}}, studyTab:'review', studyCohort:'test', studyQuestionSplit:'test', studyQuestionLanguage:'all', studyQuestionKind:'all', studyCaseId:'', studyRetrievalMethod:'lexical', studyGenerationSplit:'test', studyGenerationCaseId:'', studyGenerationMethod:'grounded_validated', semantic:{status:'idle',progress:'',error:null,query:'',mode:'dense',result:null,pending:false}, generation:{status:'idle',progress:'',error:null,query:'Why can accuracy be misleading for late delivery?',result:null,retrieval:null,pending:false}};
   let sampleRequestId = 0;
   let sampleWorker = null;
   let samplePayload = null;
   let semanticClient = null;
   let semanticRequestId = 0;
+  let generationClient = null;
+  let generationRequestId = 0;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
   const number = (value, digits = 0) => Number.isFinite(Number(value)) && value !== null ? Number(value).toLocaleString('en-US', {maximumFractionDigits: digits}) : '—';
   const percent = value => Number.isFinite(Number(value)) && value !== null ? `${(Number(value) * 100).toFixed(1)}%` : '—';
@@ -314,14 +316,15 @@
   async function loadStudies() {
     if(state.studies.status==='loading')return;
     state.studies.status='loading';state.studies.errors={};
-    const outcomes=await Promise.allSettled(['review-study.json','retrieval-study.json'].map(async filename=>{
-      const response=await fetch(`./${filename}?v=0.3.0`);
+    const kinds=['review','retrieval','generation'];
+    const outcomes=await Promise.allSettled(kinds.map(async kind=>{
+      const response=await fetch(`./${kind}-study.json?v=0.4.0`);
       if(!response.ok)throw new Error('The experiment artifact could not be downloaded.');
       const data=await response.json();
       if(data.schema_version!==1)throw new Error('This experiment uses an unsupported artifact version.');
       return data;
     }));
-    outcomes.forEach((outcome,index)=>{const kind=index===0?'review':'retrieval';if(outcome.status==='fulfilled')state.studies[kind]=outcome.value;else state.studies.errors[kind]=outcome.reason?.message||'Loading failed.';});
+    outcomes.forEach((outcome,index)=>{const kind=kinds[index];if(outcome.status==='fulfilled')state.studies[kind]=outcome.value;else state.studies.errors[kind]=outcome.reason?.message||'Loading failed.';});
     state.studies.status='ready';
     if(state.route==='studies')render();
   }
@@ -396,22 +399,80 @@
       `<div id="semantic-search-panel" tabindex="-1">${liveSemanticPanel(data)}</div>`+details('Model and benchmark protocol',{model:{id:model.id,revision:model.revision,license:model.license,browser_id:model.browser_id,browser_revision:model.browser_revision,dtype:model.dtype,dimensions:model.dimensions},corpus:data.corpus,benchmark:data.benchmark,methods:data.methods?.map(item=>({id:item.id,label:item.label,parameters:item.parameters,threshold:item.threshold}))})+limits(data.limitations)+
       `<div class="study-actions">${button('download-study-markdown','Download study report',true,'data-study="retrieval"')}${button('download-study-json','Download results JSON',false,'data-study="retrieval"')}${studyDoc('docs/RETRIEVAL_STUDY.md','Reproduce the experiment')}</div>`;
   }
+  function generationSourceLink(value) {
+    try {
+      const url=new URL(value);
+      const allowed=(url.hostname==='github.com'&&url.pathname.startsWith('/JASHD12/datapilot/'))||(['www.kaggle.com','kaggle.com'].includes(url.hostname)&&url.pathname.startsWith('/datasets/olistbr/'));
+      return url.protocol==='https:'&&allowed?url.href:null;
+    } catch { return null; }
+  }
+  function generationContexts(data, run) {
+    if(Array.isArray(run?.contexts))return run.contexts;
+    return (run?.context_ids||[]).map((id,index)=>({...(data.passages||[]).find(item=>item.id===id),id,citation:`S${index+1}`}));
+  }
+  function generationEvidence(contexts, prefix) {
+    if(!contexts?.length)return empty('No source excerpts supplied','The plain baseline receives only the question. A retrieval rejection also supplies no excerpts.');
+    return `<div class="generation-evidence">${contexts.map((item,index)=>{const url=generationSourceLink(item.source_url);return `<article class="generation-source" id="${esc(prefix)}-${index+1}"><div class="generation-source-head"><span class="tag">${esc(item.citation||`S${index+1}`)}</span><h4>${esc(item.title||item.section||'Source excerpt')}</h4></div><p>${esc(item.text||'Excerpt text is not present in this artifact.')}</p><div class="search-result-meta">${esc(item.source||item.id||'')} · ${esc(item.section||'')}${url?` · <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Read source ↗</a>`:''}</div></article>`;}).join('')}</div>`;
+  }
+  function generationOutput(run, title, raw=false) {
+    const value=raw?run?.raw_answer:run?.answer;
+    return `<section class="generation-answer"><div class="eyebrow">${esc(title)}</div><div class="generation-answer-text">${esc(typeof value==='string'&&value.length?value:'No answer text was recorded.')}</div></section>`;
+  }
+  function generationMetricRows(data) {
+    return (data.methods||[]).map(method=>{
+      const result=method.splits?.[state.studyGenerationSplit]||{};
+      return {method:method.title||method.id,questions:result.count,served_refusal_rate:studyMetric(result.served_refusal_rate),unanswerable_refusal_rate:studyMetric(result.unanswerable_abstain_rate),answerable_coverage:studyMetric(result.answerable_answer_rate),raw_invalid_citation_rate:studyMetric(result.invalid_citation_rate),raw_uncited_sentence_rate:studyMetric(result.uncited_sentence_response_rate),median_generation_ms:studyMetric(result.timings?.generation_ms?.median)};
+    });
+  }
+  function liveGenerationPanel(data) {
+    const live=state.generation,loading=live.status==='loading',busy=loading||live.pending;
+    const ready=live.status==='ready',output=live.result;
+    const status=loading?live.progress||'Checking the live service…':live.pending?live.progress||'Cloudflare is retrieving sources and generating an answer…':ready?'Live demo connected. Generate a question to call the hosted model.':live.progress||'Connect to check whether the live demo is available.';
+    return panel('Try a new grounded answer','Generate from the same public source library, then inspect what the checks accept or block.',`<p class="study-caption">${esc(data.model?.display_name||data.model?.id||'The language model')} runs on <strong>Cloudflare Workers AI</strong>. Clicking <strong>Generate with sources</strong> sends your question to Cloudflare for processing with the public demonstration passages. Use questions about this sample; do not enter personal or confidential information. The shared free daily allowance can run out. Saved results remain readable when live generation is unavailable.</p><div class="study-actions">${button('load-generation',ready?'Check connection again':loading?'Checking connection…':'Connect to live demo',true,busy?'disabled':'')}${busy?button('cancel-generation','Stop waiting'):''}</div><p class="semantic-status" id="generation-status" role="status">${esc(status)}</p>${live.error?`<p class="sample-error" role="alert">${esc(live.error)} Reconnect to retry when the service is available. A service error is not a model refusal. Saved results remain available.</p>`:''}<form data-form="grounded-generation" class="generation-form"><div class="field"><label for="generation-query">QUESTION · ENGLISH · PUBLIC DEMONSTRATION</label><textarea id="generation-query" name="question" minlength="2" maxlength="1000" required ${busy?'disabled':''} placeholder="Why can accuracy be misleading for late delivery?">${esc(live.query)}</textarea></div><div class="generation-form-bottom"><p class="study-caption">Answers are experimental. Citation-format checks do not verify the truth of a claim.</p><button class="button primary" ${!ready||busy?'disabled':''}>Generate with sources</button></div><div class="generation-suggestions"><button type="button" data-action="generation-example" data-example="supported" ${busy?'disabled':''}>Try a supported question ↗</button><button type="button" data-action="generation-example" data-example="unsupported" ${busy?'disabled':''}>Try an unsupported question ↗</button></div></form>${output?`<div class="semantic-result" id="generation-result" tabindex="-1"><div class="study-hit-heading"><div><div class="eyebrow">LIVE HOSTED GENERATION</div><h3>${output.status==='accepted'?'Passed citation-format checks':output.status==='abstained'?'Model reported insufficient evidence':'Generated draft withheld'}</h3></div><span class="tag ${output.status==='accepted'?'':'amber'}">${esc(output.status||'UNKNOWN')}</span></div><p class="study-caption">Hosted generation call: ${number(output.timings?.generation_ms/1000,2)} s · server processing: ${number(output.timings?.total_ms/1000,2)} s. ${live.retrieval?`Retrieval: ${number(live.retrieval.retrieval_ms,2)} ms. ${live.retrieval.abstained?'Retrieval supplied no excerpts because the question was below its threshold.':''}`:''} This live run is separate from the saved evaluation.</p>${generationOutput(output,'ANSWER SHOWN TO THE VISITOR')}${details('Raw model output — unverified draft',output.raw_answer)}${details('Citation-format checks — not factual verification',output.checks)}${generationEvidence(output.contexts||[],'generation-live-source')}${details('Model, timing and retrieval record',{model:output.model,prompt_version:output.prompt_version,service:live.modelInfo,timings:output.timings,usage:output.usage,completion:output.completion,retrieval:live.retrieval})}<div class="study-actions">${button('download-live-generation','Download this run JSON')}</div></div>`:''}`,'OPT-IN / CLOUDFLARE HOSTED');
+  }
+  function generationStudy() {
+    const data=state.studies.generation;
+    if(!data)return studyLoading('generation');
+    const cases=(data.cases||[]).filter(item=>item.split===state.studyGenerationSplit);
+    const selected=cases.find(item=>item.id===state.studyGenerationCaseId)||cases[0];
+    const method=(data.methods||[]).find(item=>item.id===state.studyGenerationMethod)||data.methods?.[0];
+    const run=selected?.runs?.find(item=>item.variant===method?.id||item.method===method?.id);
+    const reviewed=data.benchmark?.human_review||{};
+    const humanComplete=reviewed.status==='human_review_complete'&&reviewed.metrics!==null&&reviewed.questions_reviewed===reviewed.questions_required&&reviewed.answers_reviewed===reviewed.answers_required;
+    const questionsReviewed=reviewed.question_status==='human_questions_reviewed';
+    const reviewText=humanComplete?'A completed human review is recorded in this versioned artifact. Inspect its reviewer and fingerprints in the protocol.':questionsReviewed?'The question labels have completed human review, but answer-level review is incomplete. The numerical checks below measure formatting and abstention; they do not establish factual support or answer quality.':'The seed questions and expected facts were authored with AI assistance. Human review is pending. The numerical checks below measure formatting and abstention; they do not establish factual support or answer quality.';
+    return `<div class="study-intro"><div><div class="eyebrow">03 / GROUNDED LANGUAGE GENERATION</div><h2>${esc(data.title||'Does source evidence make a generated answer safer?')}</h2><p>${esc(data.scope||'Compare an actual language-model baseline with source-grounded generation and a structural citation gate.')}</p></div><span class="tag">SAVED ACTUAL MODEL RUNS</span></div>`+
+      studyNotice(humanComplete?'Human review recorded':questionsReviewed?'Human answer review pending':'Human review pending',reviewText)+
+      `<div class="study-actions">${button('reveal-generation','Try live generation',true)}${studyDoc('docs/GENERATION_REVIEW.md','Review the evaluation questions')}</div>`+
+      `<div class="study-metrics">${metric('Language model',data.model?.display_name||data.model?.id||'Recorded model','Pretrained model; no fine-tuning','models')}${metric('Development questions',number(data.benchmark?.dev_questions),'Exploratory seed suite','studies')}${metric('Test questions',number(data.benchmark?.test_questions),'Reported separately','shield')}${metric('Human answer quality',humanComplete?'Review recorded':'Not measured','Never inferred from citation format','knowledge')}</div>`+
+      panel('Compare the same model and questions','The validated method applies a gate to the grounded draft; it does not generate a second answer.',`<div class="study-controls"><div class="field"><label for="generation-split">QUESTION SPLIT</label><select id="generation-split" data-study-control="studyGenerationSplit"><option value="test" ${state.studyGenerationSplit==='test'?'selected':''}>Test questions</option><option value="dev" ${state.studyGenerationSplit==='dev'?'selected':''}>Development questions</option></select></div></div>${table(generationMetricRows(data),['method','questions','served_refusal_rate','unanswerable_refusal_rate','answerable_coverage','raw_invalid_citation_rate','raw_uncited_sentence_rate','median_generation_ms'])}<p class="study-caption">Rates range from 0 to 1. Refusal counts use the exact INSUFFICIENT_EVIDENCE marker or a validation block; natural-language refusals in the plain baseline are not semantically scored. ${questionsReviewed?'Question answerability labels and source matches were reviewed by the project owner; generated answers still require their own review.':'Question answerability labels are provisional until human review.'} Service failures are reported separately and excluded from answer-quality rates. Citation-error columns inspect raw drafts: withholding a draft changes served refusals, not the original errors. Median generation time covers this split's recorded runs; postprocessing reuses the grounded generation.</p><dl class="study-definitions"><div><dt>Plain baseline</dt><dd>The question alone, with no retrieved evidence.</dd></div><div><dt>Grounded generation</dt><dd>Retrieved excerpts plus instructions to cite sources and abstain when evidence is insufficient.</dd></div><div><dt>Grounded + validation</dt><dd>The same draft checked for source IDs and uncited sentences. Failed drafts are withheld.</dd></div><div><dt>Human factual review</dt><dd>A person must judge whether claims are supported and citations point to the right evidence. Formatting cannot establish this.</dd></div></dl>`,'MODEL OUTPUT / SERVED OUTPUT')+
+      panel('Inspect a recorded answer','Read the raw output alongside the answer that this method would show.',`<div class="study-controls"><div class="field"><label for="generation-method">METHOD</label><select id="generation-method" data-study-control="studyGenerationMethod">${(data.methods||[]).map(item=>`<option value="${esc(item.id)}" ${method?.id===item.id?'selected':''}>${esc(item.title||item.id)}</option>`).join('')}</select></div></div>${cases.length?`<div class="field study-question-field"><label for="generation-case">EVALUATION QUESTION</label><select id="generation-case" data-study-control="studyGenerationCaseId">${cases.map(item=>`<option value="${esc(item.id)}" ${selected?.id===item.id?'selected':''}>${esc(item.question)}</option>`).join('')}</select></div><div class="study-question"><span class="tag ${selected.answerable?'':'amber'}">${questionsReviewed?(selected.answerable?'ANSWERABLE · LABEL REVIEWED':'UNANSWERABLE · LABEL REVIEWED'):(selected.answerable?'PROVISIONALLY ANSWERABLE':'PROVISIONALLY UNANSWERABLE')}</span><h3>${esc(selected.question)}</h3><p>${esc(selected.split)} · ${esc(selected.category)} · ${questionsReviewed?'Question and source matches reviewed by project owner':esc(selected.annotation_status||'pending_human_review')}</p></div>${run?`<p class="study-caption"><strong>Recorded decision: ${esc(run.status||'unvalidated')}.</strong> Generation ${number(run.timings?.generation_ms/1000,2)} s · total ${number(run.timings?.total_ms/1000,2)} s. ${run.reuse_of?'This method reuses the grounded draft; it is not another model call.':''}</p><div class="generation-answers">${generationOutput(run,'RAW MODEL OUTPUT — UNVERIFIED',true)}${generationOutput(run,'ANSWER THIS METHOD SHOWS')}</div>${details('Recorded citation-format checks',run.checks)}${generationEvidence(generationContexts(data,run),'generation-saved-source')}${details('Expected facts and review status',{expected_facts:selected.expected_facts,relevant_passage_ids:selected.relevant_passage_ids,question_review:reviewed,answer_review:selected.review??null,interpretation:questionsReviewed?'The project owner reviewed question labels and source matches. This does not establish the quality or factual support of generated answers.':'Expected facts are AI-authored seed labels pending human review. They are not an automatic correctness score.'})}`:empty('No model output recorded','Reproduce the study to generate this run.')}`:empty('No questions in this split','Choose another question split.')}`,'RECORDED ANSWER EXPLORER')+
+      `<div id="generation-live-panel" tabindex="-1">${liveGenerationPanel(data)}</div>`+
+      details('Model, generation and review protocol',{model:data.model,run_metadata:data.run_metadata,corpus:data.corpus,benchmark:data.benchmark,methods:data.methods?.map(item=>({id:item.id,title:item.title,parameters:item.parameters,counts:item.counts,timings:item.timings}))})+limits(data.limitations)+
+      `<div class="study-actions">${button('download-study-markdown','Download study report',true,'data-study="generation"')}${button('download-study-json','Download results JSON',false,'data-study="generation"')}${studyDoc('docs/GENERATION_STUDY.md','Reproduce the experiment')}</div>`;
+  }
   function studies() {
-    return heading('08 / Research studies','Put the result under scrutiny.','Inspect model choice, class-level errors, repeated-text robustness and multilingual retrieval quality. These studies expose the protocol as well as the score.',studyDoc('docs/WALKTHROUGH.md','Technical walkthrough'))+
-      `<div class="study-tabs" role="group" aria-label="Choose a research study"><button class="study-tab ${state.studyTab==='review'?'active':''}" data-action="study-tab" data-tab="review" aria-pressed="${state.studyTab==='review'}">01 <span>Review classification</span></button><button class="study-tab ${state.studyTab==='retrieval'?'active':''}" data-action="study-tab" data-tab="retrieval" aria-pressed="${state.studyTab==='retrieval'}">02 <span>Multilingual retrieval</span></button></div><div class="study-content" id="study-content">${state.studyTab==='retrieval'?retrievalStudy():reviewStudy()}</div>`;
+    return heading('08 / Research studies','Put the result under scrutiny.','Inspect classification errors, multilingual retrieval and actual grounded language generation. Each study exposes the protocol as well as the result.',studyDoc('docs/WALKTHROUGH.md','Technical walkthrough'))+
+      `<div class="study-tabs" role="group" aria-label="Choose a research study"><button class="study-tab ${state.studyTab==='review'?'active':''}" data-action="study-tab" data-tab="review" aria-pressed="${state.studyTab==='review'}">01 <span>Review classification</span></button><button class="study-tab ${state.studyTab==='retrieval'?'active':''}" data-action="study-tab" data-tab="retrieval" aria-pressed="${state.studyTab==='retrieval'}">02 <span>Multilingual retrieval</span></button><button class="study-tab ${state.studyTab==='generation'?'active':''}" data-action="study-tab" data-tab="generation" aria-pressed="${state.studyTab==='generation'}">03 <span>Grounded generation</span></button></div><div class="study-content" id="study-content">${state.studyTab==='generation'?generationStudy():state.studyTab==='retrieval'?retrievalStudy():reviewStudy()}</div>`;
   }
   function studyExport(kind) {
     const data=state.studies[kind];
     if(!data)throw new Error('Open the study before downloading its results.');
-    if(kind==='review')return data;
+    if(kind==='review'||kind==='generation')return data;
     const {passage_embeddings,lexical_index,...result}=data;
     const {probe,...model}=result.model||{};
     return {...result,model,embedding_artifact:'retrieval-study.json (vectors omitted from this results download)'};
   }
+  function generationStudyMarkdown(data) {
+    const textBlock=value=>String(value??'No text recorded.').split('\n').map(line=>'    '+line).join('\n');
+    const review=data.benchmark?.human_review||{};
+    const questionsReviewed=review.question_status==='human_questions_reviewed';
+    return `# ${data.title}\n\n${data.scope}\n\nQuestion review: ${questionsReviewed?'Project owner reviewed the question labels and source matches':'Pending human review'}. Generated-answer review: ${review.status==='human_review_complete'?'Complete; inspect the versioned review record':'Pending; factual answer quality has not been measured'}. Citation-format checks do not establish factual support.\n\n## Model\n\n${JSON.stringify(data.model,null,2)}\n\n## Recorded comparison\n\n${(data.methods||[]).map(method=>`### ${method.title||method.id}\n\n${JSON.stringify({splits:method.splits,timings:method.timings},null,2)}`).join('\n\n')}\n\n## Recorded answers\n\n${(data.cases||[]).map(item=>`### ${item.id} / ${item.split}\n\n${item.question}\n\n${questionsReviewed?'Reviewed question label':'Provisional question label'}: ${item.answerable?'answerable':'unanswerable'}. Question review: ${questionsReviewed?'Project owner review recorded':'pending'}. Generated-answer review: ${item.review?'see JSON review record':'pending'}.\n\n${(item.runs||[]).map(run=>`**${run.variant} / ${run.status}**\n\nRaw model output:\n\n${textBlock(run.raw_answer)}\n\nServed answer:\n\n${textBlock(run.answer)}\n\nChecks: ${JSON.stringify(run.checks)}\n\nTimings: ${JSON.stringify(run.timings)}\n\nContext IDs: ${(run.context_ids||run.contexts?.map(context=>context.id)||[]).join(', ')}`).join('\n\n')}`).join('\n\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nReview instructions: https://github.com/JASHD12/datapilot/blob/main/docs/GENERATION_REVIEW.md\n\nReproduction: https://github.com/JASHD12/datapilot/blob/main/docs/GENERATION_STUDY.md\n`;
+  }
   function downloadStudy(kind, format) {
     try {
       const data=studyExport(kind);
-      const body=format==='json'?JSON.stringify(data,null,2):kind==='review'?`# ${data.title}\n\n${data.question}\n\n## Protocol\n\nRetrospective chronological study. Candidate selection uses validation only. Test results were already inspected in earlier work; this is not pristine unseen research evidence.\n\nSelected model: ${data.selected_model?.name}\n\n## Results\n\n${Object.entries(data.evaluations||{}).map(([cohort,result])=>`### ${cohort}\n\nReviews: ${result.rows}\nMacro F1: ${result.metrics?.macro_f1}\nMajority macro F1: ${result.baseline_metrics?.macro_f1}\nAccuracy: ${result.metrics?.accuracy}`).join('\n\n')}\n\n## Findings\n\n${(data.findings||[]).map(item=>'- '+item).join('\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nSource: ${data.source?.source_url||datasetUrl}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/REVIEW_STUDY.md\n`:`# ${data.title}\n\n${data.scope}\n\n${data.benchmark?.annotation_status}\n\n## Retrieval comparison\n\n${(data.methods||[]).map(method=>`### ${method.label||method.id}\n\n${['dev','test'].map(split=>`${split}: ${JSON.stringify(retrievalMetrics(method,split))}`).join('\n\n')}`).join('\n\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/RETRIEVAL_STUDY.md\n`;
+      const body=format==='json'?JSON.stringify(data,null,2):kind==='generation'?generationStudyMarkdown(data):kind==='review'?`# ${data.title}\n\n${data.question}\n\n## Protocol\n\nRetrospective chronological study. Candidate selection uses validation only. Test results were already inspected in earlier work; this is not pristine unseen research evidence.\n\nSelected model: ${data.selected_model?.name}\n\n## Results\n\n${Object.entries(data.evaluations||{}).map(([cohort,result])=>`### ${cohort}\n\nReviews: ${result.rows}\nMacro F1: ${result.metrics?.macro_f1}\nMajority macro F1: ${result.baseline_metrics?.macro_f1}\nAccuracy: ${result.metrics?.accuracy}`).join('\n\n')}\n\n## Findings\n\n${(data.findings||[]).map(item=>'- '+item).join('\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nSource: ${data.source?.source_url||datasetUrl}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/REVIEW_STUDY.md\n`:`# ${data.title}\n\n${data.scope}\n\n${data.benchmark?.annotation_status}\n\n## Retrieval comparison\n\n${(data.methods||[]).map(method=>`### ${method.label||method.id}\n\n${['dev','test'].map(split=>`${split}: ${JSON.stringify(retrievalMetrics(method,split))}`).join('\n\n')}`).join('\n\n')}\n\n## Limitations\n\n${(data.limitations||[]).map(item=>'- '+item).join('\n')}\n\nFull experiment: https://github.com/JASHD12/datapilot/blob/main/docs/RETRIEVAL_STUDY.md\n`;
       const url=URL.createObjectURL(new Blob([body],{type:format==='json'?'application/json':'text/markdown;charset=utf-8'}));
       const link=document.createElement('a');link.href=url;link.download=`datapilot-${kind}-study.${format==='json'?'json':'md'}`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     } catch(error) {toast(error.message,true);}
@@ -472,6 +533,64 @@
     }
   }
 
+  function updateGenerationProgress(value, requestId) {
+    if(requestId!==generationRequestId)return;
+    state.generation.progress=semanticProgress(value);
+    const status=$('#generation-status');if(status)status.textContent=state.generation.progress;
+  }
+  async function loadGeneration() {
+    if(state.generation.status==='loading'||state.generation.pending)return;
+    const id=++generationRequestId;
+    generationClient?.dispose();generationClient=null;
+    state.generation={...state.generation,status:'loading',progress:'Checking the live service…',error:null,result:null,retrieval:null,modelInfo:null};render();
+    let timer;
+    try {
+      const module=await import('./generation.js?v=0.4.0');
+      if(id!==generationRequestId)return;
+      generationClient=new module.GenerationClient();
+      const info=await Promise.race([generationClient.load(progress=>updateGenerationProgress(progress,id)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('The service check exceeded 15 seconds.')),15000);})]);
+      if(id!==generationRequestId)return;
+      state.generation={...state.generation,status:'ready',progress:'Live demo connected. Generating sends your question to Cloudflare.',modelInfo:info};
+      toast('Live demo connected. Try a question about the public sources.');
+    } catch(error) {
+      if(id===generationRequestId){generationClient?.cancel();generationClient=null;state.generation={...state.generation,status:'error',error:error.message||'The live service could not be reached.',pending:false,result:null,retrieval:null};}
+    } finally {
+      clearTimeout(timer);
+      if(id===generationRequestId&&state.route==='studies'&&state.studyTab==='generation')render();
+    }
+  }
+  function cancelGeneration(shouldRender=true) {
+    generationRequestId+=1;generationClient?.cancel();generationClient=null;
+    state.generation={...state.generation,status:'idle',pending:false,progress:'Stopped waiting. A request already sent may still finish on Cloudflare. Reconnect to try again.',error:null,result:null,retrieval:null,modelInfo:null};
+    if(shouldRender)render();
+  }
+  async function runGeneration(data) {
+    if(state.generation.status!=='ready'||!generationClient)return toast('Connect to the live demo before generating an answer.');
+    if(state.generation.pending)return;
+    const question=String(data.question||'').trim();
+    if(question.length<2||question.length>1000)return toast('Enter a question between 2 and 1,000 characters.',true);
+    const id=++generationRequestId;
+    state.generation={...state.generation,query:question,pending:true,progress:'Sending the question to Cloudflare for retrieval and generation…',error:null,result:null,retrieval:null};render();
+    let timer;
+    try {
+      const result=await Promise.race([generationClient.generate(question,[],'grounded',progress=>updateGenerationProgress(progress,id)),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('No answer arrived within one minute. The remote request may still finish.')),60000);})]);
+      if(id!==generationRequestId)return;
+      state.generation.result=result;
+      state.generation.retrieval=result.retrieval||null;
+    } catch(error) {
+      if(id===generationRequestId){generationClient?.cancel();generationClient=null;state.generation={...state.generation,status:'error',error:error.message||'The answer could not be generated.',result:null};}
+    } finally {
+      clearTimeout(timer);
+      if(id===generationRequestId){state.generation.pending=false;if(state.route==='studies'&&state.studyTab==='generation'){render();if(state.generation.result)revealResult('generation-result');}}
+    }
+  }
+  function downloadLiveGeneration() {
+    if(!state.generation.result)return;
+    const body={question:state.generation.query,run:state.generation.result,retrieval:state.generation.retrieval,review:null,annotation_status:'not_human_reviewed',scope:'A live Cloudflare-hosted run, separate from the saved evaluation. Citation-format checks do not establish factual support.'};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(body,null,2)],{type:'application/json'}));
+    const link=document.createElement('a');link.href=url;link.download='datapilot-live-generation.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
   function project() {
     const rows = profile().charts?.daily_orders || [];
     const capabilities = [
@@ -481,7 +600,7 @@
       ['segments','Operational profiles','K-means segmentation and Isolation Forest scores, labeled as exploratory findings.',['K-means','Isolation Forest'],'IMPLEMENTED'],
       ['knowledge','Source-aware retrieval','Compare lexical, multilingual dense and hybrid passage retrieval with a versioned evaluation protocol.',['TF-IDF','Multilingual embeddings','Hybrid RRF'],'IMPLEMENTED'],
       ['reviews','Customer review analysis','Portuguese review rating-group classification, recurring complaint keywords and source-linked excerpts.',['TF-IDF','Logistic regression'],state.workspace.review_analysis ? 'IMPLEMENTED' : 'ROADMAP'],
-      ['studies','Research studies','Inspect validation-only model choice, repeated-text robustness and seed retrieval judgments, with downloadable findings.',['Error analysis','Reproducible experiments'],'IMPLEMENTED'],
+      ['studies','Research studies','Inspect classification robustness, retrieval judgments and actual grounded generation, with downloadable failures and timing records.',['Error analysis','LLM evaluation'],'IMPLEMENTED'],
       ['ask','Further AI experiments','Independent retrieval judgments, neural reranking, transformer fine-tuning and broader evaluation datasets.',['Human review','Neural models'],'ROADMAP'],
     ];
     return `<div class="project-page">${heading('A project by Jashdeep Singh','DataPilot','A reusable AI, machine learning and data science workbench. One project, built around inspectable results.')}
@@ -491,7 +610,7 @@
     <div class="capability-grid">${capabilities.map(([glyph,title,text,tags,status])=>`<article class="capability"><div class="capability-top"><span class="capability-icon">${icon(glyph)}</span><span class="tag ${status==='ROADMAP'?'amber':''}">${status}</span></div><h3>${title}</h3><p>${text}</p><div class="stack-list">${tags.map(tag=>`<span class="stack-chip">${tag}</span>`).join('')}</div></article>`).join('')}</div>
     <section class="panel architecture"><div class="section-heading" style="margin-top:0"><h2>The system, at a glance</h2><span class="panel-tag">REPRODUCIBLE BY DESIGN</span></div><div class="architecture-flow">${[['01','Data & documents','Validated CSVs and a versioned source library'],['02','Analysis & models','Profiles, fixed comparisons and temporal backtests'],['03','Tools & evidence','Stored metrics, source retrieval and bounded routing'],['04','The workbench','A visible result, assumptions and an audit trail']].map(([n,title,text],i)=>`${i?'<span class="architecture-arrow" aria-hidden="true">→</span>':''}<div class="architecture-node"><span>${n}</span><strong>${title}</strong><small>${text}</small></div>`).join('')}</div><div class="architecture-footer">Full-data evaluation is saved. Small sample comparisons train in your browser, alongside predictions, search and reports. Full-data training and uploads use the local application. No provider key is embedded.</div></section>
     <div class="grid-equal space-top">${panel('What makes the work inspectable','Implementation choices that matter in a review.',`<ul class="detail-list"><li><span>Metrics</span><strong>Computed, never decorative</strong></li><li><span>Validation</span><strong>Time boundaries and baseline comparisons</strong></li><li><span>Evidence</span><strong>Tool outputs and cited passages</strong></li><li><span>Limits</span><strong>Visible alongside the results</strong></li></ul>`,'ENGINEERING CHOICES')}${panel('Next research questions','Planned work, not completed claims.',`<ol class="roadmap"><li><span>01</span><div><h3>Independent relevance review</h3><p>Have a reviewer check the seed questions and passage judgments, then evaluate a new question set.</p></div></li><li><span>02</span><div><h3>Model generalization</h3><p>Evaluate additional real datasets and predictive tasks with suitable labels.</p></div></li><li><span>03</span><div><h3>Multimodal evidence</h3><p>Add document extraction and evaluate field-level correctness.</p></div></li></ol>`,'ROADMAP')}</div>
-    <section class="study-project-callout"><div><div class="eyebrow">GO DEEPER / TWO REPRODUCIBLE STUDIES</div><h2>Challenge the score.</h2><p>Does a review classifier work on unfamiliar wording? Does semantic retrieval find the right evidence? Inspect the validation, failure cases and measured results.</p></div><div class="study-actions"><a class="button primary" href="#studies">Open research studies <span aria-hidden="true">↗</span></a>${studyDoc('docs/WALKTHROUGH.md','Technical walkthrough')}</div></section>
+    <section class="study-project-callout"><div><div class="eyebrow">GO DEEPER / THREE REPRODUCIBLE STUDIES</div><h2>Challenge the score.</h2><p>Does a review classifier work on unfamiliar wording? Does retrieval find evidence? Can a language model cite its sources and abstain? Inspect the protocol, failures and measured results.</p></div><div class="study-actions"><a class="button primary" href="#studies">Open research studies <span aria-hidden="true">↗</span></a>${studyDoc('docs/WALKTHROUGH.md','Technical walkthrough')}</div></section>
     ${attribution()}${note(source().description || 'Results describe only the active dataset. The versioned studies document historical experiments and their limitations.')}
     <section class="project-final"><div><h2>Inspect the project yourself.</h2><p>Follow a dataset from its source through a model comparison to an evidence report.</p></div><a class="button large" href="#models">Explore the results <span aria-hidden="true">↗</span></a></section></div>`;
   }
@@ -595,9 +714,14 @@
   document.addEventListener('click', event => {
     const target=event.target.closest('[data-action]'); if(!target)return;
     const action=target.dataset.action;
-    if(action==='study-tab') { state.studyTab=target.dataset.tab==='retrieval'?'retrieval':'review';render();document.querySelector(`[data-action="study-tab"][data-tab="${state.studyTab}"]`)?.focus();return; }
+    if(action==='study-tab') { const next=['review','retrieval','generation'].includes(target.dataset.tab)?target.dataset.tab:'review';if(next!=='generation'&&(state.generation.pending||state.generation.status==='loading'))cancelGeneration(false);state.studyTab=next;render();document.querySelector(`[data-action="study-tab"][data-tab="${state.studyTab}"]`)?.focus();return; }
     if(action==='reload-studies') { state.studies.status='idle';render();return; }
-    if(action==='download-study-markdown'||action==='download-study-json') { downloadStudy(target.dataset.study==='retrieval'?'retrieval':'review',action.endsWith('json')?'json':'markdown');return; }
+    if(action==='download-study-markdown'||action==='download-study-json') { downloadStudy(['review','retrieval','generation'].includes(target.dataset.study)?target.dataset.study:'review',action.endsWith('json')?'json':'markdown');return; }
+    if(action==='load-generation') { loadGeneration();return; }
+    if(action==='cancel-generation') { cancelGeneration();return; }
+    if(action==='reveal-generation') { revealResult('generation-live-panel');return; }
+    if(action==='download-live-generation') { downloadLiveGeneration();return; }
+    if(action==='generation-example') { if(state.generation.pending||state.generation.status==='loading')return;state.generation={...state.generation,query:target.dataset.example==='unsupported'?"What is Olist's current refund policy?":'What does mean absolute error measure?',result:null,retrieval:null};render();$('#generation-query')?.focus();return; }
     if(action==='load-semantic') { loadSemantic();return; }
     if(action==='reveal-semantic') { revealResult('semantic-search-panel');return; }
     if(action==='cancel-semantic') { cancelSemantic();return; }
@@ -615,6 +739,7 @@
   document.addEventListener('submit',async event=>{
     const form=event.target.closest('[data-form]'); if(!form)return; event.preventDefault();
     const kind=form.dataset.form, data=Object.fromEntries(new FormData(form));
+    if(kind==='grounded-generation')return runGeneration(data);
     if(kind==='semantic-search')return runSemanticSearch(data);
     if(kind==='predict-order') { predictOrder(data); render(); return; }
     if(kind==='review-search') { state.reviewSearch=data.query; render(); return; }
@@ -639,16 +764,18 @@
   document.addEventListener('change',event=>{
     const target=event.target.closest('[data-study-control]');if(!target)return;
     const key=target.dataset.studyControl;
-    if(!['studyCohort','studyQuestionSplit','studyQuestionLanguage','studyQuestionKind','studyCaseId','studyRetrievalMethod'].includes(key))return;
+    if(!['studyCohort','studyQuestionSplit','studyQuestionLanguage','studyQuestionKind','studyCaseId','studyRetrievalMethod','studyGenerationSplit','studyGenerationCaseId','studyGenerationMethod'].includes(key))return;
     state[key]=target.value;
     if(['studyQuestionSplit','studyQuestionLanguage','studyQuestionKind'].includes(key))state.studyCaseId='';
+    if(key==='studyGenerationSplit')state.studyGenerationCaseId='';
     const id=target.id;render();document.getElementById(id)?.focus({preventScroll:true});
   });
   for(const [id,path,label] of [['dataset-file','/api/datasets/upload','Dataset uploaded.'],['knowledge-file','/api/knowledge/upload','Document added.']]) $( `#${id}`).addEventListener('change',event=>{
     const file=event.target.files[0]; if(!file)return; const body=new FormData();body.append('file',file);
     mutate(()=>api(path,{method:'POST',body}),label);event.target.value='';
   });
-  window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0,behavior:'auto'});});
+  document.addEventListener('input',event=>{if(event.target.id==='generation-query'&&!state.generation.pending&&state.generation.status!=='loading')state.generation.query=event.target.value;});
+  window.addEventListener('hashchange',()=>{if(location.hash!=='#studies'&&(state.generation.pending||state.generation.status==='loading'))cancelGeneration(false);render();window.scrollTo({top:0,behavior:'auto'});});
   async function initialize() {
     try { const configResponse=await fetch('./site-config.json');if(configResponse.ok)state.config=await configResponse.json(); }catch{}
     try { state.workspace=await api('/api/workspace'); state.apiWorkspace=state.workspace; }

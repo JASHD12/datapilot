@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "manifest_fingerprint": "fd219d82a2a03634bc79941f593d6f2551fc0512008670635d15a3f0af1b3dfd",
+  "corpus_fingerprint": "5520c84e774a1851bf48c66edc71ce2c3c56efac431aee102ad3025e0ac4dc90",
+  "reviewer": {
+    "name": "Project owner (user-reported review)",
+    "role": "human",
+    "attestation": "checked",
+    "attestation_basis": "user_reply_to_explicit_question_review_request",
+    "attestation_context": "The project owner was asked to personally check all twelve proposed questions, answerability labels, expected facts and source excerpts; report corrections or confirm all correct. The user replied checked and reported no corrections. This records the user report, not independent verification that reading occurred.",
+    "independent": false
+  },
+  "reviewed_at": "2026-11-11",
+  "question_reviews": [
+    {
+      "question_id": "dev-duration-units",
+      "question_fingerprint": "401b9b69267ef8aee30f4565af50a5f7dab13f7d819be80af8a192694c1511b2",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "dev-dataset-license",
+      "question_fingerprint": "e2afe27671e1df8393af41a8f7e9170b8c24d37803a6397fc0b8682fef58d542",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "dev-refund-deadline",
+      "question_fingerprint": "0032e70f4ba24a76e9ab3c4683801f5e127fd54ae5fa9327ae45d98148dd0ff8",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "dev-causal-freight",
+      "question_fingerprint": "e7d3581ce0fe2d1b6e4fa2c21fcba8a761fadaa013033776b8c0ebe44acecc83",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-cohort-generalization",
+      "question_fingerprint": "8aabfc9f32c614270f56d26af61fb18268b8ec9865581b69020d451cce130c43",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-rating-groups",
+      "question_fingerprint": "6643b40a2fa9f66d9f288f65042514b6976b30f73d8e0e3172d7376a050d3b04",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-review-selection",
+      "question_fingerprint": "672b24db5c1934520c0d2212fff49eb5f4f9b50b2cd6eb4da3e3729f254c23c5",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-preprocessing-boundary",
+      "question_fingerprint": "6fd1a3e15b2614bc1dd1144733d9f5e03948f233e734199ad14aeebe4bcc83bf",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-complaint-injection",
+      "question_fingerprint": "ad4f6b1d4bc58fc2257af3c60808055def50778ab398168a8651eab3ef3ef8ba",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-live-parcel",
+      "question_fingerprint": "e457a3edda47dcd554637cf83bd71779a633286beae0c7b1cecd3a87b10c5435",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-refund-amount",
+      "question_fingerprint": "d77490a91bb4edc695016e709fcd733ca54bc6c2dcd6dbbea6de428659fe679d",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    },
+    {
+      "question_id": "test-secret-injection",
+      "question_fingerprint": "2219831468dcb0aeb522a2daebcf0fa5a1186410a081fff83344754d8aa8191a",
+      "decision": "correct",
+      "correction": null,
+      "notes": "User-reported approval of all twelve proposed question labels/rubrics in response to the explicit review request; no corrections reported. Does not approve generated answers."
+    }
+  ],
+  "answer_reviews": [],
+  "date_precision": "day"
+}

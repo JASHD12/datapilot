@@ -1,0 +1,15 @@
+{
+  "name": "datapilot-browser-studies",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Dependency-free hosted LLM evaluation and browser protocol checks.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test:browser": "node scripts/test_browser_training.mjs && node scripts/test_semantic_search.mjs && node scripts/test_generation.mjs --require-artifact",
+    "benchmark:generation": "node scripts/benchmark_generation.mjs",
+    "build:worker": "node scripts/build_generation_worker.mjs"
+  }
+}

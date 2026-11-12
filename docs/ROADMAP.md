@@ -18,6 +18,8 @@
 
 ## Next milestones
 
+The v0.4 generation extension executes a hosted pretrained Llama model and publishes 24 actual calls plus 12 reused validation decisions. It includes owner-reviewed question/source labels, bounded evidence retrieval, structural citation checks, unsupported-query cases and measured binding latency. This is model integration and evaluation, not transformer training. Next, manually review the generated claims, add independently authored questions and evaluate the two false refusals on a fresh development suite.
+
 The v0.3 research extension adds a retrospective word/character review-classification ablation, per-class errors, a repeated-wording audit and group-bootstrap intervals. It also measures lexical/E5 dense/RRF retrieval on 40 AI-authored seed questions in 20 bilingual category pairs, with an opt-in browser encoder and runtime compatibility checks. The technical walkthrough includes reproduction steps and exercises for independent practice. These are completed implementations; independent human relevance review and external validation are still outstanding.
 
 1. Investigate the weak neutral-rating class and delivery-model failures. Use separate development periods and document the retrospective status of any already inspected test data; acquire a genuinely new evaluation period or dataset for confirmation.

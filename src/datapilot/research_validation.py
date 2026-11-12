@@ -159,6 +159,20 @@ def validate_research_directory(root: Path) -> dict:
             "Review study and public workspace use different Olist source archives.")
     validate_review_study(review)
     validate_retrieval_study(retrieval, manifest)
+    from .generation_study import validate_study as validate_generation_study
+    generation = load(root / "frontend/generation-study.json")
+    generation_manifest = load(root / "data/evaluation/generation_questions.json")
+    generation_review = load(root / "data/evaluation/generation_question_review.json")
+    require(generation["corpus"]["fingerprint"] == retrieval["corpus"]["fingerprint"],
+            "Generation and retrieval use different source corpora.")
+    validate_generation_study(generation, generation_manifest, review=generation_review)
+    protocol_files = generation["run_metadata"]["protocol_files"]
+    require(set(protocol_files) == {"frontend/generation-core.js", "frontend/semantic-search.js", "cloudflare/generation-worker.js", "scripts/build_generation_worker.mjs"},
+            "Unexpected generation protocol files.")
+    for file, digest in protocol_files.items():
+        require(hashlib.sha256((root / file).read_bytes()).hexdigest() == digest,
+                "Generation protocol changed after the recorded experiment.")
     return {"review_test_rows": review["evaluations"]["test"]["rows"],
             "novel_wording_rows": review["evaluations"]["novel_text_test"]["rows"],
-            "retrieval_passages": retrieval["corpus"]["chunks"], "retrieval_questions": len(retrieval["cases"])}
+            "retrieval_passages": retrieval["corpus"]["chunks"], "retrieval_questions": len(retrieval["cases"]),
+            "generation_questions": len(generation["cases"])}

@@ -94,7 +94,7 @@ def main():
     print(json.dumps({"checked": True, "version": snapshot["version"], "delivered_orders": snapshot["profile"]["rows"],
                       "review_texts": snapshot["review_analysis"]["labeled_rows"],
                       "public_review_excerpts": snapshot["review_analysis"]["public_excerpt_count"],
-                      "model_inference": "browser", "generation": "deterministic evidence reports; no LLM",
+                      "model_inference": "browser", "generation": "deterministic reports plus optional hosted, evaluated LLM research workflow",
                       "app_version": __version__, "research": research}))
 
 

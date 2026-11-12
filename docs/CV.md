@@ -6,12 +6,14 @@ Repository: https://github.com/JASHD12/datapilot
 
 Live project: https://jashdeep-datapilot.pages.dev
 
-Accurate v0.3 wording; use claims you can explain and reproduce:
+Accurate v0.4 wording; use claims you can explain and reproduce:
 
 - Built a Python/FastAPI workbench for CSV profiling, classification, regression, forecasting and exploratory segmentation, with a browser interface and reproducible demo.
 - Implemented chronological model evaluation with train-only preprocessing, unavailable-label purging and baseline comparisons on a 96,470-order historical Olist cohort.
 - Audited Portuguese review rating-group classification using validation-selected word/character TF-IDF, per-class error analysis and duplicate-text robustness; recorded macro-F1 0.6475 versus a 0.2605 majority baseline on 6,548 later reviews with previously unseen normalized wording.
 - Built multilingual lexical, E5 dense and reciprocal-rank-fusion retrieval over 94 source passages; published a 40-question bilingual seed evaluation and deployed optional browser ONNX inference with runtime checks and source-linked results.
+
+- Implemented and deployed a grounded LLM workflow using Cloudflare Workers AI, with a 12-question owner-reviewed seed suite, plain-versus-grounded comparisons, citation-format validation, unsupported-query tests and recorded latency. Published raw outputs and abstention failures; generated-answer correctness remains pending human review.
 
 The review study is retrospective, uses recorded ratings as target proxies, and does not establish improvement over the original review model or another marketplace. The retrieval questions form 20 bilingual category pairs; their AI-assisted relevance labels have not been independently human-validated. No production business impact or generative-answer quality was measured.
 

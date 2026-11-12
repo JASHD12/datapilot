@@ -15,4 +15,5 @@ dist/
 *.log
 .openai/
 *.egg-info/
+node_modules/
 

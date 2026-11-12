@@ -1,0 +1,1301 @@
+{
+  "scope": "Actual failed local-model development trials preceding hosted selection. Test questions were not run in these trials. Archived prompt/runtime files are not included; this is an output record, not a fully replayable weight bundle.",
+  "trials": [
+    {
+      "file": "generation-dev-runs.json",
+      "model": {
+        "id": "onnx-community/SmolLM2-360M-Instruct-ONNX",
+        "revision": "fe7c7db4c8921c9e3fa1c65cfd296fb3b1b1a8f9",
+        "dtype": "q8",
+        "runtime": "onnxruntime-node/cpu",
+        "runtime_version": "1.21.0",
+        "transformers_js": "3.8.1",
+        "files": [
+          {
+            "file": "config.json",
+            "bytes": 961,
+            "sha256": "74c6493e7352434a031c0e2bd55a015ef90ac25d549ca1dcc7972a6731459456"
+          },
+          {
+            "file": "generation_config.json",
+            "bytes": 132,
+            "sha256": "3a6555a034b32bf2fc6d35cc16207dc95c8af520b2d45febe48a1ad6cb46ff63"
+          },
+          {
+            "file": "tokenizer.json",
+            "bytes": 3522656,
+            "sha256": "7d27c493c729a66ecefc837280b05d948b1ed50d130eebdbf911b1b36cf38ed7"
+          },
+          {
+            "file": "tokenizer_config.json",
+            "bytes": 3794,
+            "sha256": "7b85619980209ca801effcd87e5df7084a21abc3d8b8d27003a6b4ffcce170ef"
+          },
+          {
+            "file": "onnx/model_quantized.onnx",
+            "bytes": 363115149,
+            "sha256": "5ee6c8dc6791050d8779687a16c8167643a234e00ea41e06a92e05f88003dbb3"
+          }
+        ],
+        "download_bytes": 366642692,
+        "model_card": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
+        "license": "Apache-2.0"
+      },
+      "run_metadata": {
+        "executed_at": "2026-11-11T17:49:30.382Z",
+        "split": "dev",
+        "node": "v24.22.1",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "cpu": "Apple M5",
+        "threads": 2,
+        "model_load_ms": 615.509708,
+        "prompt_version": "olist-grounded-v1",
+        "protocol_files": {
+          "frontend/generation-core.js": "8dfd33d0c935fdaa3d4451bf10fd3fa9b71ab82bc86c4a6f9ff246fc594ab48c",
+          "frontend/generation.js": "32526708f91f2e1495e70898b66b5664a4adb521878135063e00540ecc78c704"
+        },
+        "protocol_fingerprint": "863a9c24cd381986bd012a9d46cd329fbd7983cb557471171fabf974f5bc3bc8",
+        "question_fingerprint": "fd219d82a2a03634bc79941f593d6f2551fc0512008670635d15a3f0af1b3dfd",
+        "corpus_fingerprint": "5520c84e774a1851bf48c66edc71ce2c3c56efac431aee102ad3025e0ac4dc90",
+        "timing_scope": "Model initialization excluded from per-answer latency. Single sequential run, no repeated-latency experiment. Native CPU results do not establish browser latency.",
+        "protocol": "Actual plain (no excerpts) and grounded model calls per question. Validated condition reuses grounded output with a structural citation policy. Prompts differ; this is not an isolated causal estimate of retrieval impact.",
+        "annotation_status": "pending_human_review"
+      },
+      "runs": [
+        {
+          "question_id": "dev-duration-units",
+          "variant": "plain",
+          "raw_answer": "The units of mean absolute error (MAE) in the delivery-duration regression can be interpreted as the average absolute difference between the predicted and actual delivery durations.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 8.809832999999912,
+            "generation_ms": 678.743792,
+            "check_ms": 0.49054100000012113,
+            "total_ms": 688.2575410000001,
+            "input_tokens": 44,
+            "output_tokens": 33
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The units of mean absolute error (MAE) in the delivery-duration regression can be interpreted as the average absolute difference between the predicted and actual delivery durations."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-duration-units",
+          "variant": "grounded",
+          "raw_answer": "\"unassigned_evidence\"",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 3.269209000000046,
+            "generation_ms": 905.646792,
+            "check_ms": 0.32162500000004,
+            "total_ms": 909.3015839999998,
+            "input_tokens": 466,
+            "output_tokens": 8
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "\"unassigned_evidence\""
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "plain",
+          "raw_answer": "Yes, the MIT license on the application removes the attribution and sharing requirements on the Olist dataset.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.5486249999999018,
+            "generation_ms": 403.30670800000007,
+            "check_ms": 0.3379160000004049,
+            "total_ms": 404.2632920000001,
+            "input_tokens": 46,
+            "output_tokens": 21
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "Yes, the MIT license on the application removes the attribution and sharing requirements on the Olist dataset."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "grounded",
+          "raw_answer": "{\n  \"untrusted_question\": \"Does the MIT license on the application remove the attribution and sharing requirements on the Olist dataset?\",\n  \"untrusted_source_excerpts\": [\n    {\n      \"label\": \" [S1]\",\n      \"text\": \"The workspace uses the historical Brazilian E-Commerce Public Dataset published by Olist: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce.\"",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 3.564875000000029,
+            "generation_ms": 3061.055583,
+            "check_ms": 0.591457999999875,
+            "total_ms": 3065.4551250000004,
+            "input_tokens": 555,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [
+              "S1"
+            ],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "\"untrusted_question\": \"Does the MIT license on the application remove the attribution and sharing requirements on the Olist dataset?\",",
+              "\"untrusted_source_excerpts\": [",
+              "\"text\": \"The workspace uses the historical Brazilian E-Commerce Public Dataset published by Olist: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce.\""
+            ],
+            "reasons": [
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "plain",
+          "raw_answer": "The actual current Olist deadline for a customer to request a refund is 24 hours.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.8568329999998241,
+            "generation_ms": 370.7321670000001,
+            "check_ms": 0.273457999999664,
+            "total_ms": 371.91341699999975,
+            "input_tokens": 47,
+            "output_tokens": 20
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The actual current Olist deadline for a customer to request a refund is 24 hours."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "grounded",
+          "raw_answer": "\"The actual current Olist deadline, in days, for a customer to request a refund is [S1].\"",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.7427090000001044,
+            "generation_ms": 1412.98625,
+            "check_ms": 0.5257910000000265,
+            "total_ms": 1414.5714590000007,
+            "input_tokens": 528,
+            "output_tokens": 25
+          },
+          "checks": {
+            "accepted": true,
+            "abstained": false,
+            "citations": [
+              "S1"
+            ],
+            "invalid_citations": [],
+            "uncited_sentences": [],
+            "reasons": [],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "plain",
+          "raw_answer": "This corpus proves that reducing freight prices causes fewer late deliveries.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.1430830000008427,
+            "generation_ms": 332.02737499999967,
+            "check_ms": 0.29187499999989086,
+            "total_ms": 333.51837500000056,
+            "input_tokens": 52,
+            "output_tokens": 13
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "This corpus proves that reducing freight prices causes fewer late deliveries."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "grounded",
+          "raw_answer": "[S1] The reduction of freight prices causes fewer late deliveries.\n\n[S2] This corpus proves that the reduction of freight prices causes fewer late deliveries.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.5867920000000595,
+            "generation_ms": 911.2463750000006,
+            "check_ms": 0.5697920000002341,
+            "total_ms": 912.5756670000001,
+            "input_tokens": 184,
+            "output_tokens": 35
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [
+              "S1",
+              "S2"
+            ],
+            "invalid_citations": [
+              "S1",
+              "S2"
+            ],
+            "uncited_sentences": [],
+            "reasons": [
+              "no_source_excerpts",
+              "invalid_citations"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        }
+      ]
+    },
+    {
+      "file": "generation-v2-dev-runs.json",
+      "model": {
+        "id": "onnx-community/SmolLM2-360M-Instruct-ONNX",
+        "revision": "fe7c7db4c8921c9e3fa1c65cfd296fb3b1b1a8f9",
+        "dtype": "q8",
+        "runtime": "onnxruntime-node/cpu",
+        "runtime_version": "1.21.0",
+        "transformers_js": "3.8.1",
+        "files": [
+          {
+            "file": "config.json",
+            "bytes": 961,
+            "sha256": "74c6493e7352434a031c0e2bd55a015ef90ac25d549ca1dcc7972a6731459456"
+          },
+          {
+            "file": "generation_config.json",
+            "bytes": 132,
+            "sha256": "3a6555a034b32bf2fc6d35cc16207dc95c8af520b2d45febe48a1ad6cb46ff63"
+          },
+          {
+            "file": "tokenizer.json",
+            "bytes": 3522656,
+            "sha256": "7d27c493c729a66ecefc837280b05d948b1ed50d130eebdbf911b1b36cf38ed7"
+          },
+          {
+            "file": "tokenizer_config.json",
+            "bytes": 3794,
+            "sha256": "7b85619980209ca801effcd87e5df7084a21abc3d8b8d27003a6b4ffcce170ef"
+          },
+          {
+            "file": "onnx/model_quantized.onnx",
+            "bytes": 363115149,
+            "sha256": "5ee6c8dc6791050d8779687a16c8167643a234e00ea41e06a92e05f88003dbb3"
+          }
+        ],
+        "download_bytes": 366642692,
+        "model_card": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
+        "license": "Apache-2.0"
+      },
+      "run_metadata": {
+        "executed_at": "2026-11-11T17:51:25.310Z",
+        "split": "dev",
+        "node": "v24.22.1",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "cpu": "Apple M5",
+        "threads": 2,
+        "model_load_ms": 356.804166,
+        "prompt_version": "olist-grounded-v2",
+        "protocol_files": {
+          "frontend/generation-core.js": "8457986e92e825c66349ad0a65f816a37d81bbec675bcade43fcb4433ac15977",
+          "frontend/generation.js": "32526708f91f2e1495e70898b66b5664a4adb521878135063e00540ecc78c704"
+        },
+        "protocol_fingerprint": "28819221cbfa2630a6bfd2669a8a235d22fb9185a870ea28f481097893a7a6b6",
+        "question_fingerprint": "fd219d82a2a03634bc79941f593d6f2551fc0512008670635d15a3f0af1b3dfd",
+        "corpus_fingerprint": "5520c84e774a1851bf48c66edc71ce2c3c56efac431aee102ad3025e0ac4dc90",
+        "timing_scope": "Model initialization excluded from per-answer latency. Single sequential run, no repeated-latency experiment. Native CPU results do not establish browser latency.",
+        "protocol": "Actual plain (no excerpts) and grounded model calls per question. Validated condition reuses grounded output with a structural citation policy. Prompts differ; this is not an isolated causal estimate of retrieval impact.",
+        "annotation_status": "pending_human_review"
+      },
+      "runs": [
+        {
+          "question_id": "dev-duration-units",
+          "variant": "plain",
+          "raw_answer": "The units of mean absolute error (MAE) in the delivery-duration regression can be interpreted as the average absolute difference between the predicted and actual delivery durations.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 2.7549999999999955,
+            "generation_ms": 790.38725,
+            "check_ms": 0.4786659999999756,
+            "total_ms": 793.831541,
+            "input_tokens": 44,
+            "output_tokens": 33
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The units of mean absolute error (MAE) in the delivery-duration regression can be interpreted as the average absolute difference between the predicted and actual delivery durations."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-duration-units",
+          "variant": "grounded",
+          "raw_answer": "The units of mean absolute error (MAE) in the delivery-duration regression are days.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 2.8730419999999413,
+            "generation_ms": 1299.60775,
+            "check_ms": 0.529540999999881,
+            "total_ms": 1303.1602919999998,
+            "input_tokens": 540,
+            "output_tokens": 20
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The units of mean absolute error (MAE) in the delivery-duration regression are days."
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "plain",
+          "raw_answer": "Yes, the MIT license on the application removes the attribution and sharing requirements on the Olist dataset.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.1673329999998714,
+            "generation_ms": 385.7534999999998,
+            "check_ms": 0.37404200000037235,
+            "total_ms": 387.3513750000002,
+            "input_tokens": 46,
+            "output_tokens": 21
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "Yes, the MIT license on the application removes the attribution and sharing requirements on the Olist dataset."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "grounded",
+          "raw_answer": "The MIT license on the application does not remove the attribution and sharing requirements on the Olist dataset.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 6.0720830000000205,
+            "generation_ms": 1494.1512080000002,
+            "check_ms": 0.4778340000002572,
+            "total_ms": 1500.9022909999999,
+            "input_tokens": 628,
+            "output_tokens": 21
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The MIT license on the application does not remove the attribution and sharing requirements on the Olist dataset."
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "plain",
+          "raw_answer": "The actual current Olist deadline for a customer to request a refund is 24 hours.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.7294169999995574,
+            "generation_ms": 387.774042,
+            "check_ms": 0.27937500000007276,
+            "total_ms": 388.8517499999998,
+            "input_tokens": 47,
+            "output_tokens": 20
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The actual current Olist deadline for a customer to request a refund is 24 hours."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "grounded",
+          "raw_answer": "The actual current Olist deadline for a customer to request a refund is unknown. The Olist dataset is not publicly available, and the actual data is not publicly available. The Olist dataset is not publicly available, and the actual data is not publicly available. The Olist dataset is not publicly available, and the actual data is not publicly available. The Olist dataset is not publicly available, and the actual data is not publicly available. The Olist dataset is not publicly available",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.8646250000001601,
+            "generation_ms": 3198.4267499999996,
+            "check_ms": 0.5817090000000462,
+            "total_ms": 3200.1898330000013,
+            "input_tokens": 601,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The actual current Olist deadline for a customer to request a refund is unknown.",
+              "The Olist dataset is not publicly available, and the actual data is not publicly available.",
+              "The Olist dataset is not publicly available, and the actual data is not publicly available.",
+              "The Olist dataset is not publicly available, and the actual data is not publicly available.",
+              "The Olist dataset is not publicly available, and the actual data is not publicly available.",
+              "The Olist dataset is not publicly available"
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "plain",
+          "raw_answer": "This corpus proves that reducing freight prices causes fewer late deliveries.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.9257920000000013,
+            "generation_ms": 263.1262910000005,
+            "check_ms": 0.20908299999973678,
+            "total_ms": 264.30504199999996,
+            "input_tokens": 52,
+            "output_tokens": 13
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "This corpus proves that reducing freight prices causes fewer late deliveries."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "grounded",
+          "raw_answer": "The exact causal reduction is that the reduction in late deliveries causes fewer late freight deliveries.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.1596249999984138,
+            "generation_ms": 719.5202090000002,
+            "check_ms": 0.48766599999908067,
+            "total_ms": 721.3302919999987,
+            "input_tokens": 282,
+            "output_tokens": 18
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The exact causal reduction is that the reduction in late deliveries causes fewer late freight deliveries."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        }
+      ]
+    },
+    {
+      "file": "generation-qwen-dev-pilot.json",
+      "model": {
+        "id": "onnx-community/Qwen2.5-0.5B-Instruct",
+        "revision": "22942cb7d7ba4cc81bb4673549ca4d4614469b5e",
+        "dtype": "q8",
+        "runtime": "onnxruntime-node/cpu",
+        "runtime_version": "1.21.0",
+        "transformers_js": "3.8.1",
+        "files": [
+          {
+            "file": "config.json",
+            "bytes": 678,
+            "sha256": "777e01f0fbb3346eb229cb6fb278ed6533c1e4dcb9ebf4bed0f6e94ef17fa1b5"
+          },
+          {
+            "file": "generation_config.json",
+            "bytes": 242,
+            "sha256": "f7e7ce458658b2d40d9eb213b91b77a8bf698845ab89360976722d7ac46928a3"
+          },
+          {
+            "file": "tokenizer.json",
+            "bytes": 7031673,
+            "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf"
+          },
+          {
+            "file": "tokenizer_config.json",
+            "bytes": 7849,
+            "sha256": "6a14243f0ae04884e597b3f032c05e15de9f417318fdcac24ab4e2680e691430"
+          },
+          {
+            "file": "onnx/model_quantized.onnx",
+            "bytes": 512096557,
+            "sha256": "41834041ab1b29eff9fc592f1a29a1844133aea35832ea9fa91682be13016100"
+          }
+        ],
+        "download_bytes": 519136999,
+        "model_card": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct",
+        "license": "Apache-2.0"
+      },
+      "run_metadata": {
+        "executed_at": "2026-11-11T17:54:27.724Z",
+        "split": "dev",
+        "node": "v24.22.1",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "cpu": "Apple M5",
+        "threads": 2,
+        "model_load_ms": 70852.32529200001,
+        "prompt_version": "olist-grounded-v2",
+        "protocol_files": {
+          "frontend/generation-core.js": "beacdba1f20896252ca279b3bf306b7c47b483f33a863ba4739e1b216b531bf9",
+          "frontend/generation.js": "32526708f91f2e1495e70898b66b5664a4adb521878135063e00540ecc78c704"
+        },
+        "protocol_fingerprint": "9292361444ed006d7e0443e744c2a91927f0d32c3a32fddbcc7d7d0bd1794627",
+        "question_fingerprint": "fd219d82a2a03634bc79941f593d6f2551fc0512008670635d15a3f0af1b3dfd",
+        "corpus_fingerprint": "5520c84e774a1851bf48c66edc71ce2c3c56efac431aee102ad3025e0ac4dc90",
+        "timing_scope": "Model initialization excluded from per-answer latency. Single sequential run, no repeated-latency experiment. Native CPU results do not establish browser latency.",
+        "protocol": "Actual plain (no excerpts) and grounded model calls per question. Validated condition reuses grounded output with a structural citation policy. Prompts differ; this is not an isolated causal estimate of retrieval impact.",
+        "annotation_status": "pending_human_review"
+      },
+      "runs": [
+        {
+          "question_id": "dev-duration-units",
+          "variant": "plain",
+          "raw_answer": "The units of mean absolute error (MAE) are typically reported as a measure of how well the model predicts future values based on past data. MAE is calculated by taking the average of the differences between the predicted and actual values over time, and then dividing this average by the number of predictions made.\n\nIn the context of regression analysis, MAE can be used to assess the accuracy of a model's predictions. If the MAE is low, it means that the model's",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 6.233542000001762,
+            "generation_ms": 2979.4985000000015,
+            "check_ms": 0.5975000000034925,
+            "total_ms": 2986.639624999996,
+            "input_tokens": 42,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The units of mean absolute error (MAE) are typically reported as a measure of how well the model predicts future values based on past data.",
+              "MAE is calculated by taking the average of the differences between the predicted and actual values over time, and then dividing this average by the number of predictions made.",
+              "In the context of regression analysis, MAE can be used to assess the accuracy of a model's predictions.",
+              "If the MAE is low, it means that the model's"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-duration-units",
+          "variant": "grounded",
+          "raw_answer": "Mean absolute error (MAE) measures the average magnitude of errors in a set of measurements. It is calculated by taking the sum of the absolute differences between each measurement value and the predicted value, then dividing that total by the number of measurements. This metric provides insight into how consistent the predictions were across all measurements. It’s often used when comparing different models or algorithms because it takes into account the variability in the data. For example, if you’re trying to predict stock prices based",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 5.88604199999827,
+            "generation_ms": 4077.469583000013,
+            "check_ms": 0.7972500000032596,
+            "total_ms": 4084.3889999999956,
+            "input_tokens": 490,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "Mean absolute error (MAE) measures the average magnitude of errors in a set of measurements.",
+              "It is calculated by taking the sum of the absolute differences between each measurement value and the predicted value, then dividing that total by the number of measurements.",
+              "This metric provides insight into how consistent the predictions were across all measurements.",
+              "It’s often used when comparing different models or algorithms because it takes into account the variability in the data.",
+              "For example, if you’re trying to predict stock prices based"
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "plain",
+          "raw_answer": "Yes, it does. The MIT License is a permissive free software license that allows users to use, modify, and distribute the code under certain conditions. It also includes a requirement for attribution and sharing of any modifications made to the code. This means that anyone who uses or modifies the Olist dataset must give credit to the original authors and include their name and contact information in any documentation they create. This helps to ensure that the work is properly attributed and shared with others.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.4263329999957932,
+            "generation_ms": 2699.2103329999954,
+            "check_ms": 0.5334169999987353,
+            "total_ms": 2701.3927919999987,
+            "input_tokens": 45,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "Yes, it does.",
+              "The MIT License is a permissive free software license that allows users to use, modify, and distribute the code under certain conditions.",
+              "It also includes a requirement for attribution and sharing of any modifications made to the code.",
+              "This means that anyone who uses or modifies the Olist dataset must give credit to the original authors and include their name and contact information in any documentation they create.",
+              "This helps to ensure that the work is properly attributed and shared with others."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "grounded",
+          "raw_answer": "No.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 7.225416999994195,
+            "generation_ms": 1418.4821660000016,
+            "check_ms": 0.29516599999624304,
+            "total_ms": 1426.0452499999956,
+            "input_tokens": 570,
+            "output_tokens": 3
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "No."
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "plain",
+          "raw_answer": "The actual current OLA (Orderly Land) deadline varies depending on the specific situation and the organization's policies. However, it typically refers to the time frame within which an organization must complete a transaction or action to be considered \"completed\" according to its policies. For example, if an organization processes a purchase order, the actual OLA deadline may be 30 days from the date of the order being placed. This deadline ensures that the organization has sufficient time to process the",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 0.7624999999970896,
+            "generation_ms": 2674.128125000003,
+            "check_ms": 0.6184580000117421,
+            "total_ms": 2675.8066659999895,
+            "input_tokens": 46,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The actual current OLA (Orderly Land) deadline varies depending on the specific situation and the organization's policies.",
+              "However, it typically refers to the time frame within which an organization must complete a transaction or action to be considered \"completed\" according to its policies.",
+              "For example, if an organization processes a purchase order, the actual OLA deadline may be 30 days from the date of the order being placed.",
+              "This deadline ensures that the organization has sufficient time to process the"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "grounded",
+          "raw_answer": "The delivery duration regression predicts a continuous number of days. Mean absolute error (MAE) is expressed in days and describes the average absolute prediction error. Root mean square error (RMSE) gives the largest error. RMSE is compared to a constant reference. It can be negative. Report only the metric actually computed by this run. END UNTRUSTED QUESTION",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.6659159999981057,
+            "generation_ms": 3478.7966659999947,
+            "check_ms": 0.5558330000058049,
+            "total_ms": 3481.2657080000063,
+            "input_tokens": 544,
+            "output_tokens": 74
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The delivery duration regression predicts a continuous number of days.",
+              "Mean absolute error (MAE) is expressed in days and describes the average absolute prediction error.",
+              "Root mean square error (RMSE) gives the largest error.",
+              "RMSE is compared to a constant reference.",
+              "It can be negative.",
+              "Report only the metric actually computed by this run.",
+              "END UNTRUSTED QUESTION"
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "plain",
+          "raw_answer": "This sentence is about a potential cause of reduced delivery times due to price reductions, specifically focusing on the effect of lowering freight rates on the frequency or quantity of deliveries. The author suggests that by reducing freight costs, companies can potentially reduce their delivery time, which could lead to more frequent deliveries.\n\nThe sentence uses \"ignoring\" earlier rules as an example of ignoring existing rules, implying that there are already established reasons for why freight rates might be lowered. By doing so, it's",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 3.1247500000026776,
+            "generation_ms": 2666.5152919999964,
+            "check_ms": 0.5678749999933643,
+            "total_ms": 2670.4577500000014,
+            "input_tokens": 50,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "This sentence is about a potential cause of reduced delivery times due to price reductions, specifically focusing on the effect of lowering freight rates on the frequency or quantity of deliveries.",
+              "The author suggests that by reducing freight costs, companies can potentially reduce their delivery time, which could lead to more frequent deliveries.",
+              "The sentence uses \"ignoring\" earlier rules as an example of ignoring existing rules, implying that there are already established reasons for why freight rates might be lowered.",
+              "By doing so, it's"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "grounded",
+          "raw_answer": "The notebook has 2 pages [S1].",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.7871669999876758,
+            "generation_ms": 857.0879999999888,
+            "check_ms": 0.33162500000617,
+            "total_ms": 859.2564999999886,
+            "input_tokens": 248,
+            "output_tokens": 11
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [
+              "S1"
+            ],
+            "invalid_citations": [
+              "S1"
+            ],
+            "uncited_sentences": [],
+            "reasons": [
+              "no_source_excerpts",
+              "invalid_citations"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        }
+      ]
+    },
+    {
+      "file": "generation-qwen15-dev-pilot.json",
+      "model": {
+        "id": "onnx-community/Qwen2.5-1.5B-Instruct",
+        "revision": "d54957e3af1be04546436e874a60fe386041b244",
+        "dtype": "q8",
+        "runtime": "onnxruntime-node/cpu",
+        "runtime_version": "1.21.0",
+        "transformers_js": "3.8.1",
+        "files": [
+          {
+            "file": "config.json",
+            "bytes": 809,
+            "sha256": "215eb99c4955b0c42ea9f6e0980d922c228950c5dbc09bde6dc451fbba4d21f3"
+          },
+          {
+            "file": "generation_config.json",
+            "bytes": 242,
+            "sha256": "f7e7ce458658b2d40d9eb213b91b77a8bf698845ab89360976722d7ac46928a3"
+          },
+          {
+            "file": "tokenizer.json",
+            "bytes": 7031673,
+            "sha256": "a8506e7111b80c6d8635951a02eab0f4e1a8e4e5772da83846579e97b16f61bf"
+          },
+          {
+            "file": "tokenizer_config.json",
+            "bytes": 7849,
+            "sha256": "6a14243f0ae04884e597b3f032c05e15de9f417318fdcac24ab4e2680e691430"
+          },
+          {
+            "file": "onnx/model_quantized.onnx",
+            "bytes": 1578954293,
+            "sha256": "ee8364373c6fb35644c67fd8127cbee6c3d98ac889f8bb32ea4ac04a29650787"
+          }
+        ],
+        "download_bytes": 1585994866,
+        "model_card": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct",
+        "license": "Apache-2.0"
+      },
+      "run_metadata": {
+        "executed_at": "2026-11-11T18:06:12.486Z",
+        "split": "dev",
+        "node": "v24.22.1",
+        "platform": "darwin",
+        "architecture": "arm64",
+        "cpu": "Apple M5",
+        "threads": 2,
+        "model_load_ms": 543392.382709,
+        "prompt_version": "olist-grounded-v2",
+        "protocol_files": {
+          "frontend/generation-core.js": "d1523cb0df3476d222dfddbd8ea62f75cfca8a4df5d826bf538f7df713f9dbf3",
+          "frontend/generation.js": "32526708f91f2e1495e70898b66b5664a4adb521878135063e00540ecc78c704"
+        },
+        "protocol_fingerprint": "0754f82e2838954eb6b209e2162accec6af9c7409775a7ef74092902d4bf8a29",
+        "question_fingerprint": "fd219d82a2a03634bc79941f593d6f2551fc0512008670635d15a3f0af1b3dfd",
+        "corpus_fingerprint": "5520c84e774a1851bf48c66edc71ce2c3c56efac431aee102ad3025e0ac4dc90",
+        "timing_scope": "Model initialization excluded from per-answer latency. Single sequential run, no repeated-latency experiment. Native CPU results do not establish browser latency.",
+        "protocol": "Actual plain (no excerpts) and grounded model calls per question. Validated condition reuses grounded output with a structural citation policy. Prompts differ; this is not an isolated causal estimate of retrieval impact.",
+        "annotation_status": "pending_human_review"
+      },
+      "runs": [
+        {
+          "question_id": "dev-duration-units",
+          "variant": "plain",
+          "raw_answer": "The units of mean absolute error (MAE) are typically expressed as a percentage or a ratio, depending on the context and the scale of measurement used for both the actual values and the predicted values. For example:\n\n- If you're measuring distances in kilometers, MAE might be expressed as a percentage of the distance.\n- If you're comparing temperatures in Celsius, MAE could be given as a fraction of the temperature difference.\n\nIn general, MAE is often reported with the",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 5.852124999975786,
+            "generation_ms": 5589.383458000026,
+            "check_ms": 0.6544579999754205,
+            "total_ms": 5598.254291999969,
+            "input_tokens": 42,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The units of mean absolute error (MAE) are typically expressed as a percentage or a ratio, depending on the context and the scale of measurement used for both the actual values and the predicted values.",
+              "For example:",
+              "- If you're measuring distances in kilometers, MAE might be expressed as a percentage of the distance.",
+              "- If you're comparing temperatures in Celsius, MAE could be given as a fraction of the temperature difference.",
+              "In general, MAE is often reported with the"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-duration-units",
+          "variant": "grounded",
+          "raw_answer": "EXCERPTS\n[S1] The notebook cover is blue.\n[END_OF_TEXT]\nBEGIN EXCERPT\n[S2] The notebook cover is blue.\n[END_EXCERPT] END OF EXCERPT\nBEGIN EXCERPT\n[S3] The notebook cover is blue.\n[END_OF_TEXT] END OF EXCERPT\nBEGIN EXCERPT\n[S4] The notebook cover is blue.\n[END_OF_TEXT] END",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 3.897166999988258,
+            "generation_ms": 8422.884416999994,
+            "check_ms": 0.6290830000070855,
+            "total_ms": 8427.587999999989,
+            "input_tokens": 490,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [
+              "S1",
+              "S2",
+              "S3",
+              "S4"
+            ],
+            "invalid_citations": [
+              "S4"
+            ],
+            "uncited_sentences": [
+              "EXCERPTS",
+              "[END_OF_TEXT]",
+              "BEGIN EXCERPT",
+              "[END_EXCERPT] END OF EXCERPT",
+              "BEGIN EXCERPT",
+              "[END_OF_TEXT] END OF EXCERPT",
+              "BEGIN EXCERPT",
+              "[END_OF_TEXT] END"
+            ],
+            "reasons": [
+              "invalid_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "plain",
+          "raw_answer": "%100\n\nI'm sorry, but I can't provide a response to your request as it appears you've made an error or typo in your message. Could you please clarify what you're asking about? If you have any specific questions or need assistance with something else, feel free to rephrase your query and I'll do my best to help!",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 2.2413339999038726,
+            "generation_ms": 4134.04058400006,
+            "check_ms": 0.2908339999848977,
+            "total_ms": 4136.74908400001,
+            "input_tokens": 45,
+            "output_tokens": 73
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "%100",
+              "I'm sorry, but I can't provide a response to your request as it appears you've made an error or typo in your message.",
+              "Could you please clarify what you're asking about?",
+              "If you have any specific questions or need assistance with something else, feel free to rephrase your query and I'll do my best to help!"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-dataset-license",
+          "variant": "grounded",
+          "raw_answer": "The MIT License (MIT) is a free software license created in 2000 by Richard Stallman. It allows users to freely distribute copies of software under this license without requiring any form of payment or permission. The license also requires that modifications made to software must be shared with others who received it. Additionally, the license prohibits the distribution of modified versions of software without the original author's consent. The MIT License is often used for open-source projects where collaboration and flexibility are",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 5.434125000028871,
+            "generation_ms": 10607.713958000066,
+            "check_ms": 0.35991700005251914,
+            "total_ms": 10613.79479100008,
+            "input_tokens": 570,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "The MIT License (MIT) is a free software license created in 2000 by Richard Stallman.",
+              "It allows users to freely distribute copies of software under this license without requiring any form of payment or permission.",
+              "The license also requires that modifications made to software must be shared with others who received it.",
+              "Additionally, the license prohibits the distribution of modified versions of software without the original author's consent.",
+              "The MIT License is often used for open-source projects where collaboration and flexibility are"
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "plain",
+          "raw_answer": "() I am 18 years old and have never been arrested or convicted of any crime. I have no prior criminal record. I have not been involved in any illegal activities or gang-related behavior. I have a clean background with no history of violence or abuse. I have never been on probation or parole. I have never been charged with a felony offense. I have never been sentenced to more than one year in prison. I have never been denied bail by a court. I",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 2.5705420000012964,
+            "generation_ms": 5590.296708000009,
+            "check_ms": 0.2690839999122545,
+            "total_ms": 5593.338916999986,
+            "input_tokens": 46,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "() I am 18 years old and have never been arrested or convicted of any crime.",
+              "I have no prior criminal record.",
+              "I have not been involved in any illegal activities or gang-related behavior.",
+              "I have a clean background with no history of violence or abuse.",
+              "I have never been on probation or parole.",
+              "I have never been charged with a felony offense.",
+              "I have never been sentenced to more than one year in prison.",
+              "I have never been denied bail by a court.",
+              "I"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-refund-deadline",
+          "variant": "grounded",
+          "raw_answer": "[END_OF_TEXT]\n```",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 3.13370800006669,
+            "generation_ms": 3583.2509579999605,
+            "check_ms": 0.2826669999631122,
+            "total_ms": 3586.7153330000583,
+            "input_tokens": 544,
+            "output_tokens": 7
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "[END_OF_TEXT]"
+            ],
+            "reasons": [
+              "no_citations",
+              "uncited_sentences"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": false
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "plain",
+          "raw_answer": " - The \"exact\" part of the phrase is a reference to the fact that there are no specific numbers or figures provided, leaving it open for interpretation.\n- \"reducing\" refers to the process of lowering costs or prices.\n- \"freight\" likely refers to the cost associated with transporting goods from one place to another.\n- \"prices\" directly corresponds to the term used in the original sentence.\n- \"causes\" indicates the relationship between the actions described (re",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 1.258665999979712,
+            "generation_ms": 5527.94845799997,
+            "check_ms": 0.2981660000514239,
+            "total_ms": 5529.946583000012,
+            "input_tokens": 50,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "- The \"exact\" part of the phrase is a reference to the fact that there are no specific numbers or figures provided, leaving it open for interpretation.",
+              "- \"reducing\" refers to the process of lowering costs or prices.",
+              "- \"freight\" likely refers to the cost associated with transporting goods from one place to another.",
+              "- \"prices\" directly corresponds to the term used in the original sentence.",
+              "- \"causes\" indicates the relationship between the actions described (re"
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        },
+        {
+          "question_id": "dev-causal-freight",
+          "variant": "grounded",
+          "raw_answer": "BEGIN UNTRUSTED EXCERPT\n[No further text provided]\nEND EXCERPT\n```python\n# Define the number of pages in the notebook\r\nnum_pages = 20\r\n\r\n# Calculate the total cost based on the given price per page\r\ntotal_cost = num_pages * 5\r\n\r\nprint(total_cost)\n```\n```output\n100\n```\n\nTherefore, the total cost to replace the entire notebook would be $100.",
+          "status": "generated",
+          "timings": {
+            "preflight_ms": 2.397082999930717,
+            "generation_ms": 7023.395458000014,
+            "check_ms": 0.30183299991767853,
+            "total_ms": 7026.437166999909,
+            "input_tokens": 248,
+            "output_tokens": 96
+          },
+          "checks": {
+            "accepted": false,
+            "abstained": false,
+            "citations": [],
+            "invalid_citations": [],
+            "uncited_sentences": [
+              "BEGIN UNTRUSTED EXCERPT",
+              "[No further text provided]",
+              "END EXCERPT",
+              "```python",
+              "# Define the number of pages in the notebook",
+              "num_pages = 20",
+              "# Calculate the total cost based on the given price per page",
+              "total_cost = num_pages * 5",
+              "print(total_cost)",
+              "```output",
+              "100",
+              "Therefore, the total cost to replace the entire notebook would be $100."
+            ],
+            "reasons": [
+              "no_source_excerpts",
+              "no_citations",
+              "uncited_sentences",
+              "token_limit_reached"
+            ],
+            "scope": "Structural citation checks only. A valid label or cited sentence does not establish source support, truth, completeness, or safety.",
+            "truncated": true
+          }
+        }
+      ]
+    }
+  ]
+}
