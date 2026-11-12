@@ -309,7 +309,7 @@
   }
   function studyMetric(value) { return value === null || value === undefined ? '—' : number(value,4); }
   function studyLoading(kind) {
-    if(state.studies.status==='loading')return `<div class="study-loading" role="status"><span class="loader"></span><p>Opening the versioned experiment…</p></div>`;
+    if(state.studies.status==='idle'||state.studies.status==='loading')return `<div class="study-loading" role="status"><span class="loader"></span><p>Opening the versioned experiment…</p></div>`;
     return `<div class="study-unavailable" role="alert"><h2>This study could not be opened.</h2><p>${esc(state.studies.errors[kind]||'The experiment artifact is unavailable at this address.')}</p>${button('reload-studies','Retry loading studies',true)}</div>`;
   }
   function studyNotice(title, text) { return `<aside class="study-notice"><strong>${esc(title)}</strong><p>${esc(text)}</p></aside>`; }
